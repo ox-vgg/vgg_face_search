@@ -1,0 +1,10 @@
+*.pyc
+*~
+*.pkl
+pipeline/build/
+# virtual environment folders
+/bin/
+/local/
+/lib/
+/include/
+/share/
