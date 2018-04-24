@@ -8,7 +8,7 @@
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<additional paths>
 BASEDIR=$(dirname "$0")
 cd "$BASEDIR"
-source ../bin/activate
+source ../../bin/activate
 if [ "$1" = "video" ]; then
     # get video name
     VIDEONAME=$(basename "$2")
