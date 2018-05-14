@@ -9,6 +9,8 @@ import argparse
 import platform
 from multiprocessing import freeze_support
 import shutil
+import string
+import re
 
 MIN_IOU = 0.5
 
@@ -123,7 +125,10 @@ if __name__ == '__main__':
     if destination_frames_path.endswith(os.path.sep):
         destination_frames_path = destination_frames_path[:-1]
 
+    pattern = re.compile('[^a-zA-Z0-9_]')
+    string_accepted = pattern.sub('', string.printable)
     destination_frames_path = destination_frames_path.split(os.path.sep)[-1]
+    destination_frames_path = ''.join(filter(lambda afunc: afunc in string_accepted, destination_frames_path))
     if not os.path.exists(os.path.join(args.dataset_base_path, destination_frames_path)):
         os.makedirs(os.path.join(args.dataset_base_path, destination_frames_path))
 

@@ -38,17 +38,17 @@ if [ "$1" = "video" ]; then
         done
         # run face tracking and feature extraction with the frames and shots computed before
         if [ "$#" -ne 4 ]; then
-            python compute_pos_features_video.py "/tmp/${VIDEONAME}/" "/tmp/${VIDEONAME}_shots.txt" ${3}
+            python compute_pos_features_video.py "/tmp/${VIDEONAME}/" "/tmp/${VIDEONAME}_shots.txt" "${3}"
         else
-            python compute_pos_features_video.py "/tmp/${VIDEONAME}/" "/tmp/${VIDEONAME}_shots.txt" ${3} -o ${4}
+            python compute_pos_features_video.py "/tmp/${VIDEONAME}/" "/tmp/${VIDEONAME}_shots.txt" "${3}" -o "${4}"
         fi
         rm -rf "/tmp/${VIDEONAME}"
         rm -f "/tmp/${VIDEONAME}_shots.txt"
     fi
 else
     if [ "$#" -ne 4 ]; then
-        python compute_pos_features.py ${2} ${3}
+        python compute_pos_features.py "${2}" "${3}"
     else
-        python compute_pos_features.py ${2} ${3} -o ${4}
+        python compute_pos_features.py "${2}" "${3}" -o "${4}"
     fi
 fi

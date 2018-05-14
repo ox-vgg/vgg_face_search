@@ -42,6 +42,63 @@ class FaceDetectorFacenetMTCNN(object):
                 self.pnet, self.rnet, self.onet = align.detect_face.create_mtcnn(self.sess, None)
 
 
+    def bulk_detect_faces(self, images):
+        """
+            Computes face detection on a list of images. See the method detect_faces().
+            Arguments:
+                images: List of input images
+            Returns:
+                A list of lists or arrays. Each sublist contains the arrays with the face detections of the corresponding image in the
+                input list. See the method detect_faces() for the details on the contents of each sublist.
+        """
+        if images:
+            try:
+                h = images[0].shape[0]
+                w = images[0].shape[1]
+                detection_window_size_ratio = MINSIZE/(numpy.minimum(w, h)*1.0)
+                all_bounding_boxes = align.detect_face.bulk_detect_face(images, detection_window_size_ratio, self.pnet, self.rnet, self.onet, THRESHOLD, FACTOR)
+                if len(all_bounding_boxes) > 0:
+                    all_detections = [ None ] * len(all_bounding_boxes)
+                    for i in range(len(all_bounding_boxes)):
+                        if all_bounding_boxes[i]:
+                            bounding_boxes = all_bounding_boxes[i][0]
+                            det_list = []
+                            for j in range(len(bounding_boxes)):
+                                det = numpy.squeeze(bounding_boxes[j, 0:5])
+                                bounding_box = numpy.zeros(5, dtype=numpy.float32)
+                                # extend detection
+                                extend_factor = self.face_rect_expand_factor
+                                width = round(det[2]-det[0])
+                                height = round(det[3]-det[1])
+                                length = (width + height)/2.0
+                                centrepoint = [round(det[0]) + width/2.0, round(det[1]) + height/2.0]
+                                bounding_box[0] = centrepoint[0] - round((1+extend_factor)*length/2.0)
+                                bounding_box[1] = centrepoint[1] - round((1+extend_factor)*length/2.0)
+                                bounding_box[2] = centrepoint[0] + round((1+extend_factor)*length/2.0)
+                                bounding_box[3] = centrepoint[1] + round((1+extend_factor)*length/2.0)
+                                ## prevent going off image
+                                bounding_box[0] = int(max(bounding_box[0], 0))
+                                bounding_box[1] = int(max(bounding_box[1], 0))
+                                bounding_box[2] = int(min(bounding_box[2], images[i].shape[1]))
+                                bounding_box[3] = int(min(bounding_box[3], images[i].shape[0]))
+                                bounding_box[4] = det[4]
+                                det_list.append(bounding_box)
+
+                            # save detections for current i
+                            all_detections[i] = det_list
+
+                    # return list of all detections
+                    return all_detections
+                else:
+                    return None
+
+            except Exception as e:
+                print 'Exception in FaceDetectorFacenetMTCNN:', str(e)
+                pass
+
+        return None
+
+
     def detect_faces(self, img, return_best=False):
         """
             Computes a list of faces detected in the input image in the form of a list of bounding-boxes, one per each detected face.
@@ -49,7 +106,7 @@ class FaceDetectorFacenetMTCNN(object):
                 img: The image to be input to the Faster R-CNN model
                 return_best: boolean indicating whether to return just to best detection or the complete list of detections
             Returns:
-                A list of lists. Each sublist contains the image coordinates of the corners of a bounding-box and the score of the detection
+                A list of arrays. Each array contains the image coordinates of the corners of a bounding-box and the score of the detection
                 in the form [x1,y1,x2,y2,score], where (x1,y1) are the integer coordinates of the top-left corner of the box and (x2,y2) are
                 the coordinates of the bottom-right corner of the box. The score is a floating-point number.
                 When return_best is True, the returned list will contain only one bounding-box

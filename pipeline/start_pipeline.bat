@@ -37,9 +37,9 @@ if "%1"=="video" (
       REM endlocal
       :next
       if "%~4"=="" (
-           python compute_pos_features_video.py "%~dp0..\..\tmp\!VIDEONAME!" "%~dp0..\..\tmp\!VIDEONAME!_shots.txt" %3
+           python compute_pos_features_video.py "%~dp0..\..\tmp\!VIDEONAME!" "%~dp0..\..\tmp\!VIDEONAME!_shots.txt" "%3"
       ) else (
-           python compute_pos_features_video.py "%~dp0..\..\tmp\!VIDEONAME!" "%~dp0..\..\tmp\!VIDEONAME!_shots.txt" %3 -o %4
+           python compute_pos_features_video.py "%~dp0..\..\tmp\!VIDEONAME!" "%~dp0..\..\tmp\!VIDEONAME!_shots.txt" "%3" -o "%4"
       )
       REM clean up
       rmdir /S /Q "%~dp0..\..\tmp\!VIDEONAME!"
@@ -48,9 +48,9 @@ if "%1"=="video" (
   goto :end
 ) else (
     if "%~4"=="" (
-        python compute_pos_features.py %2 %3
+        python compute_pos_features.py "%2" "%3"
     ) else (
-        python compute_pos_features.py %2 %3 -o %4
+        python compute_pos_features.py "%2" "%3" -o "%4"
     )
 )
 :end
