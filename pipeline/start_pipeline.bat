@@ -1,8 +1,8 @@
 @echo off
 REM Parameters:
 REM %1 -> Type of input: "video" or "images"
-REM %2 -> Full path to video (if input type is "video") or full path to text file containing list of images to ingest (if input type is "images")
-REM %3 -> Full path to base folder holding the images referenced by the search service
+REM %2 -> If input type is "video": Full path to video. If input type is "images": Full path to base folder holding the images referenced by the search service
+REM %3 -> If input type is "video": Full path to base folder holding the images referenced by the search service. If input type is "images": Full path to text file containing list of images to ingest
 REM %4 -> Full path to output features file (optional)
 cd "%~dp0"
 REM activate virtual env
