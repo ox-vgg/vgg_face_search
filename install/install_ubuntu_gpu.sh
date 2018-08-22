@@ -64,6 +64,7 @@ pip install scikit-image==0.13.1
 pip install protobuf==3.0.0
 pip install easydict==1.7
 pip install pyyaml==3.12
+pip install dill==0.2.8.2
 
 # install face-py-faster-rcnn
 wget https://github.com/playerkk/face-py-faster-rcnn/archive/9d8c143e0ff214a1dcc6ec5650fb5045f3002c2c.zip -P /tmp

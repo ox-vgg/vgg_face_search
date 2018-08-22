@@ -32,3 +32,14 @@ Before running the service for the first time, please check the `settings.py` fi
 If you already have adjusted the settings and have a dataset feature file, you should be ready to start the service. To do so, start a command-line terminal and then execute the `start_backend_service.sh` script (`start_backend_service.bat` for Windows). Use that script file to define or modify any environment variables required by your local setup.
 
 The service should be reachable at the HOST and PORT specified in the settings.
+
+Advanced Result Ranking
+-----------------------
+
+In general, the ranking of results is done by computing distances between the feature vectors extracted from the dataset and the feature vectors extracted from the training images submitted via the API of this service. For very large datasets, this distance computation can take an undesirable long time.
+
+In order to speed up this computation, the features can be stored in KD-trees and separated from the rest of the dataset information (such as image paths and face detections). However, at present you can only "move" to this kind of computation if you already have a pre-computed dataset file in the old format. If you do have a pre-computed dataset file, take a look at `databaseutils.py`. In that file you will find functions to: a) extract the feature vectors from the dataset file and save them as KD-trees, b) Remove the feature vectors from the dataset file (since you don't want to load them in memory twice).
+
+Note that depending on the structure of the source pre-computed dataset file, one or more KD-trees file and new dataset files will be produced.
+
+Once you have "moved" to the new dataset representation, go to `settings.py` and set `KDTREES_RANKING_ENABLED` to `True` plus change the `DATASET_FEATS_FILE` variable to point to the new dataset file without features. Then restart the service.

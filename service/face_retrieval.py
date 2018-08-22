@@ -24,6 +24,9 @@ else:
 # import face feature extractor
 import face_features
 
+if settings.KDTREES_RANKING_ENABLED:
+    import kdutils
+
 def group_feature_extractor(image_list):
     """
         Body of the thread that runs the face feature extraction for
@@ -58,6 +61,7 @@ def group_feature_extractor(image_list):
     return list_of_feats
 
 
+
 class FaceRetrieval(object):
     """
         Class implementing the face-search engine.
@@ -73,6 +77,7 @@ class FaceRetrieval(object):
         self.query_id_lock = multiprocessing.Lock()
         self.worker_pool = multiprocessing.Pool(processes=settings.NUMBER_OF_HELPER_WORKERS)
         self.database = {'paths': [], 'rois': [], 'feats': []}
+        self.kdtrees = []
         self.query_data = dict()
         if settings.CUDA_ENABLED:
             self.face_detector = face_detection_faster_rcnn.FaceDetectorFasterRCNN()
@@ -81,15 +86,29 @@ class FaceRetrieval(object):
         else:
             self.face_detector = face_detection_facenet.FaceDetectorFacenetMTCNN()
 
-        # acquire dataset information
+        if settings.KDTREES_RANKING_ENABLED:
+            print "Ranking with kdtrees is enabled"
+            if os.path.exists(settings.KDTREES_FILE):
+                print 'Found precomputed kdtrees...'
+                self.kdtrees = kdutils.load_kdtrees(settings.KDTREES_FILE)
+            else:
+                print 'DID NOT find precomputed kdtrees. The dataset features will not be accessible via kd-trees.'
+
+        print 'Loading dataset...'
+        # acquire dataset information the old-fashion way
         with open(settings.DATASET_FEATS_FILE, 'rb') as fin:
             database_content = pickle.load(fin)
             if isinstance(database_content, dict):
-                self.database['feats'].extend(database_content['feats'])
+                if len(self.kdtrees)==0:
+                    if 'feats' in database_content.keys():
+                        self.database['feats'].extend(database_content['feats'])
+                    else:
+                        raise Exception('The features cannot be found. Please check your settings.')
                 self.database['paths'].extend(database_content['paths'])
                 self.database['rois'].extend(database_content['rois'])
             elif isinstance(database_content, list):
                 for entry in database_content:
+                    print 'Loading sub-dataset', entry
                     if os.path.sep not in entry:
                         # in this case, assume it is in the same directory as the DATASET_FEATS_FILE
                         sub_database = os.path.join(os.path.dirname(settings.DATASET_FEATS_FILE), entry)
@@ -97,11 +116,20 @@ class FaceRetrieval(object):
                         sub_database = entry
                     with open(sub_database, 'rb') as fin_chunk:
                         database_chunk_content = pickle.load(fin_chunk)
-                    self.database['feats'].extend(database_chunk_content['feats'])
+                    if len(self.kdtrees)==0:
+                        if 'feats' in database_chunk_content.keys():
+                             self.database['feats'].extend(database_chunk_content['feats'])
+                        else:
+                            raise Exception('The features cannot be found. Please check your settings.')
                     self.database['paths'].extend(database_chunk_content['paths'])
                     self.database['rois'].extend(database_chunk_content['rois'])
             else:
                 raise Exception('Cannot initialize FaceRetrieval. File %s contains corrupted information.' % settings.DATASET_FEATS_FILE)
+
+        print "Loaded database for %d images" % len(self.database['paths'])
+
+        # do one load of this to get things into the cache
+        feature_extractor = face_features.FaceFeatureExtractor()
 
         print "FaceRetrieval successfully initialized"
 
@@ -433,7 +461,7 @@ class FaceRetrieval(object):
 
             # execute parallel feature extraction by groups
             print "Computing features"
-            results = self.worker_pool.map_async(group_feature_extractor, query_data_groups).get(10)
+            results = self.worker_pool.map_async(group_feature_extractor, query_data_groups).get(settings.FEATURES_EXTRACTION_TIMEOUT)
         except Exception as e:
             print 'Exception while computing features:', str(e)
             print traceback.format_exc()
@@ -627,11 +655,25 @@ class FaceRetrieval(object):
         query_id = str(query_id)
         print "Ranking Data"
 
-        dst = df.cdist(self.database['feats'], self.query_data[query_id]["features"])
+        if settings.KDTREES_RANKING_ENABLED:
+            bests = []
+            accum_len = 0
+            for idx in range(len(self.kdtrees)):
+                dd, ii = self.kdtrees[idx].query(self.query_data[query_id]["features"], k=settings.MAX_RESULTS_RETURN)
+                for idx2 in range(settings.MAX_RESULTS_RETURN):
+                    bests.append( ( dd[0][idx2], ii[0][idx2] + accum_len ) )
+                accum_len = accum_len + self.kdtrees[idx].n
+            bests_sorted = numpy.array(bests, dtype=[('dist', float), ('idx', int)])
+            bests_sorted.sort(order='dist')
+            ranking_indexes = [ item[1] for item in bests_sorted[0:settings.MAX_RESULTS_RETURN] ]
+            dst = [ item[0] for item in bests_sorted[0:settings.MAX_RESULTS_RETURN] ]
+        else:
+            dst = df.cdist(self.database['feats'], self.query_data[query_id]["features"])
+            ranking_indexes = numpy.argsort(dst, axis=None)
+            ranking_indexes = ranking_indexes[0:settings.MAX_RESULTS_RETURN]
+
         print 'Done computing distances'
 
-        ranking_indexes = numpy.argsort(dst, axis=None)
-        ranking_indexes = ranking_indexes[0:settings.MAX_RESULTS_RETURN]
         ranking_list = []
         for i in range(len(ranking_indexes)):
             idx = ranking_indexes[i]
@@ -642,8 +684,11 @@ class FaceRetrieval(object):
                     # x1  , y1   ,  x2  ,  y1   ,x2    ,y2    ,x1    ,y2    ,x1    ,y1
                     det[0], det[1], det[2], det[1], det[2], det[3], det[0], det[3], det[0], det[1])
             ranking_dict['roi'] = roi_str
-            ranking_dict['score'] = dst[idx][0]
-            if dst[idx] > settings.MAX_RESULTS_SCORE:
+            if settings.KDTREES_RANKING_ENABLED:
+                ranking_dict['score'] = dst[i]
+            else:
+                ranking_dict['score'] = dst[idx][0]
+            if ranking_dict['score'] > settings.MAX_RESULTS_SCORE:
                 ranking_dict['score'] = -1
             # check underlying type of results and
             # remove one dimension if necessary

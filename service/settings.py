@@ -26,6 +26,14 @@ FEATURES_CAFFE_LAYER = 'feat_extract'
 
 FEATURES_VECTOR_SIZE = 256
 
+FEATURES_EXTRACTION_TIMEOUT = 10
+
 GPU_FACE_DETECTION_CAFFE_MODEL = os.path.join(DEPENDENCIES_PATH, 'face-py-faster-rcnn', 'data', 'faster_rcnn_models', 'vgg16_faster_rcnn_iter_80000.caffemodel')
 
 NUMBER_OF_HELPER_WORKERS = 8
+
+KDTREES_RANKING_ENABLED = True
+
+KDTREES_DATASET_SPLIT_SIZE = 100000
+
+KDTREES_FILE =  os.path.join(FILE_DIR, '..', 'kdtrees.pkl')

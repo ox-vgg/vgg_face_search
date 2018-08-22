@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y \
 
 # Create requirements file, install all requirements and download git repo
 RUN pip install --upgrade pip \
-    && printf "simplejson==3.8.2\nPillow==2.3.0\nnumpy==1.13.3\nlxml==4.1.1\nscipy==0.18.1\nmatplotlib==2.1.0\nscikit-image==0.13.1\nscikit-learn==0.19.1" > /tmp/requirements.txt \
+    && printf "simplejson==3.8.2\nPillow==2.3.0\nnumpy==1.13.3\nlxml==4.1.1\nscipy==0.18.1\nmatplotlib==2.1.0\nscikit-image==0.13.1\nscikit-learn==0.19.1\ndill==0.2.8.2" > /tmp/requirements.txt \
     && pip install -r /tmp/requirements.txt \
     && rm  /tmp/requirements.txt \
     && pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl \

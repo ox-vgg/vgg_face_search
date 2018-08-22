@@ -55,6 +55,7 @@ pip install scipy==0.18.1
 pip install matplotlib==2.1.0
 pip install scikit-image==0.13.1
 pip install scikit-learn==0.19.1
+pip install dill==0.2.8.2
 pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
 
 # download caffe

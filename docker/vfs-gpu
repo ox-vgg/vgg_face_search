@@ -37,7 +37,7 @@ RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repo
     && rm -rf /var/lib/apt/lists/*
 
 # Create requirements files for pip, install all pip requirements, create main folders and secret key file
-RUN printf "protobuf==3.0.0\nPillow==2.3.0\nnumpy==1.13.1\nsimplejson==3.8.2\nscipy==0.18.1\nscikit-image==0.13.1\neasydict==1.7\nCython==0.27.3\npyyaml==3.12\nmatplotlib==2.1.0" > /tmp/requirements.txt \
+RUN printf "protobuf==3.0.0\nPillow==2.3.0\nnumpy==1.13.1\nsimplejson==3.8.2\nscipy==0.18.1\nscikit-image==0.13.1\neasydict==1.7\nCython==0.27.3\npyyaml==3.12\nmatplotlib==2.1.0\ndill==0.2.8.2" > /tmp/requirements.txt \
     && pip install -r /tmp/requirements.txt \
     && mkdir /webapps/ \
     && chmod 777 /webapps/ \
