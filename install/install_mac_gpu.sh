@@ -35,9 +35,10 @@ brew install jpeg libpng libtiff
 brew install -vd snappy leveldb gflags glog szip lmdb
 brew install -vd hdf5 opencv
 brew install -vd tesseract
-brew install -vd protobuf
+brew install -vd protobuf@2.6
 brew install -vd boost@1.59 boost-python@1.59
 brew install -vd openblas
+brew link --force protobuf@2.6
 brew link --force boost@1.59
 brew link --force boost-python@1.59
 
