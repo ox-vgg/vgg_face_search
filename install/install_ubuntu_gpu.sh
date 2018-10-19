@@ -48,6 +48,7 @@ wget https://gitlab.com/vgg/vgg_face_search/-/archive/master/vgg_face_search-mas
 unzip /tmp/vgg_face_search.zip -d $VGG_FACE_INSTALL_FOLDER/
 mv $VGG_FACE_INSTALL_FOLDER/vgg_face_search*  $VGG_FACE_SRC_FOLDER
 sed -i 's/CUDA_ENABLED = False/CUDA_ENABLED = True/g' $VGG_FACE_SRC_FOLDER/service/settings.py
+sed -i 's/resnet50_256/senet50_256/g' $VGG_FACE_SRC_FOLDER/service/settings.py
 
 # create virtual environment and install python dependencies
 cd $VGG_FACE_SRC_FOLDER
@@ -80,10 +81,18 @@ mkdir $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/data/faster_rcnn_models
 cd $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/data/faster_rcnn_models
 wget http://supermoe.cs.umass.edu/%7Ehzjiang/data/vgg16_faster_rcnn_iter_80000.caffemodel
 
+# download SENet modifications to caffe (Sep 2017) and apply them to caffe-fast-rcnn
+wget https://github.com/lishen-shirley/SENet/archive/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -P /tmp
+unzip /tmp/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
+mv $VGG_FACE_DEPENDENCIES_FOLDER/SENet* $VGG_FACE_DEPENDENCIES_FOLDER/SENet
+CAFFE_FASTER_RCNN_FOLDER="$VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn"
+cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/include/caffe/layers/* $CAFFE_FASTER_RCNN_FOLDER/include/caffe/layers/
+cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/src/caffe/layers/* $CAFFE_FASTER_RCNN_FOLDER/src/caffe/layers/
+
 # download models
 cd $VGG_FACE_SRC_FOLDER/models
-wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/resnet50_256.caffemodel
-wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/resnet50_256.prototxt
+wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel
+wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt
 
 # download static ffmpeg
 wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz -O /tmp/ffmpeg-release-64bit-static.tar.xz

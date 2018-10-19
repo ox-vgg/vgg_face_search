@@ -126,7 +126,7 @@ class FaceRetrieval(object):
             else:
                 raise Exception('Cannot initialize FaceRetrieval. File %s contains corrupted information.' % settings.DATASET_FEATS_FILE)
 
-        print "Loaded database for %d images" % len(self.database['paths'])
+        print "Loaded database for %d tracks" % len(self.database['paths'])
 
         # do one load of this to get things into the cache
         feature_extractor = face_features.FaceFeatureExtractor()

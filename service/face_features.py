@@ -11,7 +11,11 @@ import settings
 # add pycaffe to the sys path, reuse the Caffe within face-py-faster-rcnn if possible
 caffe_fast_rcnn_path = os.path.join(settings.DEPENDENCIES_PATH, 'face-py-faster-rcnn', 'caffe-fast-rcnn', 'python')
 if caffe_fast_rcnn_path not in sys.path:
-    sys.path.append(os.path.join(settings.DEPENDENCIES_PATH, 'caffe', 'python'))
+    if os.path.exists(caffe_fast_rcnn_path):
+        sys.path.append(caffe_fast_rcnn_path)
+    else:
+        standard_caffe_path = os.path.join(settings.DEPENDENCIES_PATH, 'caffe', 'python')
+        sys.path.append(standard_caffe_path)
 # suppress Caffe verbose prints
 os.environ['GLOG_minloglevel'] = '2'
 # finally import Caffe
@@ -52,7 +56,7 @@ class FaceFeatureExtractor(object):
         # Change this code to set mean array from the mean RGB values. Note that mean
         # subtraction is done after the channel swap.
 
-        self.transformer.set_mean('data', numpy.array([93.5940, 104.7624, 129.1863]) ) # mean pixel
+        self.transformer.set_mean('data', numpy.array([91.4953, 103.8827, 131.0912]) ) # mean pixel
         self.transformer.set_raw_scale('data', 255)  # the reference model operates on images in [0,255] range instead of [0,1]
         self.transformer.set_channel_swap('data', (2, 1, 0))  # the reference model has channels in BGR order instead of RGB
 
@@ -86,7 +90,7 @@ class FaceFeatureExtractor(object):
                 # lock acquire
                 self.net_lock.acquire()
 
-                # use caffe.io. to prepare input data
+                # use transformer to prepare input data
                 self.net.blobs['data'].data[...] = self.transformer.preprocess('data', img_scaled)
                 # evaluate input
                 out = self.net.forward()

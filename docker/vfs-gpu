@@ -36,7 +36,7 @@ RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repo
     && apt-get install -y --no-install-recommends libcudnn4-dev=4.0.8 \
     && rm -rf /var/lib/apt/lists/*
 
-# Create requirements files for pip, install all pip requirements, create main folders and secret key file
+# Create requirements file, install all requirements, download git repo and configure vgg_face_search
 RUN printf "protobuf==3.0.0\nPillow==2.3.0\nnumpy==1.13.1\nsimplejson==3.8.2\nscipy==0.18.1\nscikit-image==0.13.1\neasydict==1.7\nCython==0.27.3\npyyaml==3.12\nmatplotlib==2.1.0\ndill==0.2.8.2" > /tmp/requirements.txt \
     && pip install -r /tmp/requirements.txt \
     && mkdir /webapps/ \
@@ -48,16 +48,22 @@ RUN printf "protobuf==3.0.0\nPillow==2.3.0\nnumpy==1.13.1\nsimplejson==3.8.2\nsc
     && sed -i 's/source ..\//source /g' /webapps/vgg_face_search/service/start_backend_service.sh \
     && sed -i 's/source ..\//source /g' /webapps/vgg_face_search/pipeline/start_pipeline.sh \
     && sed -i 's/CUDA_ENABLED = False/CUDA_ENABLED = True/g' /webapps/vgg_face_search/service/settings.py \
-    && sed -i 's/GPU_FACE_DETECTION_CAFFE_MODEL/GPU_FACE_DETECTION_CAFFE_MODEL="\/webapps\/vgg_face_search\/models\/vgg16_faster_rcnn_iter_80000.caffemodel"#/g' /webapps/vgg_face_search/service/settings.py
+    && sed -i 's/GPU_FACE_DETECTION_CAFFE_MODEL/GPU_FACE_DETECTION_CAFFE_MODEL="\/webapps\/vgg_face_search\/models\/vgg16_faster_rcnn_iter_80000.caffemodel"#/g' /webapps/vgg_face_search/service/settings.py \
+    && sed -i 's/resnet50_256/senet50_256/g' /webapps/vgg_face_search/service/settings.py
 
-# Install face-py-faster-rcnn
+# Install face-py-faster-rcnn and SENet modifications (Sep 2017) for caffe
 RUN wget https://github.com/playerkk/face-py-faster-rcnn/archive/9d8c143e0ff214a1dcc6ec5650fb5045f3002c2c.zip -P /tmp \
     && unzip /tmp/9d8c143e0ff214a1dcc6ec5650fb5045f3002c2c.zip -d /webapps/vgg_face_search/dependencies/ \
     && mv /webapps/vgg_face_search/dependencies/face-py-faster-rcnn-* /webapps/vgg_face_search/dependencies/face-py-faster-rcnn \
     && wget https://github.com/rbgirshick/caffe-fast-rcnn/archive/0dcd397b29507b8314e252e850518c5695efbb83.zip -P /tmp \
     && unzip /tmp/0dcd397b29507b8314e252e850518c5695efbb83.zip -d /webapps/vgg_face_search/dependencies/face-py-faster-rcnn \
     && rm -r /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn  \
-    && mv /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn-* /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn  \
+    && mv /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn-* /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn \
+    && wget https://github.com/lishen-shirley/SENet/archive/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -P /tmp \
+    && unzip /tmp/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -d /webapps/vgg_face_search/dependencies/ \
+    && mv /webapps/vgg_face_search/dependencies/SENet* /webapps/vgg_face_search/dependencies/SENet \
+    && cp -v /webapps/vgg_face_search/dependencies/SENet/include/caffe/layers/* /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn/include/caffe/layers/ \
+    && cp -v /webapps/vgg_face_search/dependencies/SENet/src/caffe/layers/* /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn/src/caffe/layers/ \
     && rm -rf /tmp/*.zip \
     && cd /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/lib \
     && make
@@ -85,6 +91,6 @@ RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.t
 
 # Download models. This is only here for reference. The models should not be copied inside the image to reduce the image size.
 #RUN cd /webapps/vgg_face_search/models/ \
-#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/resnet50_256.caffemodel \
-#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/resnet50_256.prototxt \
+#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel \
+#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt \
 #    && wget http://supermoe.cs.umass.edu/%7Ehzjiang/data/vgg16_faster_rcnn_iter_80000.caffemodel

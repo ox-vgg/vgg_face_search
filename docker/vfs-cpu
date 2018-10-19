@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y --no-install-recommends libboost-all-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create requirements file, install all requirements and download git repo
+# Create requirements file, install all requirements, download git repo and configure vgg_face_search
 RUN pip install --upgrade pip \
     && printf "simplejson==3.8.2\nPillow==2.3.0\nnumpy==1.13.3\nlxml==4.1.1\nscipy==0.18.1\nmatplotlib==2.1.0\nscikit-image==0.13.1\nscikit-learn==0.19.1\ndill==0.2.8.2" > /tmp/requirements.txt \
     && pip install -r /tmp/requirements.txt \
@@ -49,9 +49,10 @@ RUN pip install --upgrade pip \
     && unzip /tmp/vgg_face_search.zip -d /webapps/ \
     && mv /webapps/vgg_face_search* /webapps/vgg_face_search \
     && sed -i 's/source ..\//source /g' /webapps/vgg_face_search/service/start_backend_service.sh \
-    && sed -i 's/source ..\//source /g' /webapps/vgg_face_search/pipeline/start_pipeline.sh
+    && sed -i 's/source ..\//source /g' /webapps/vgg_face_search/pipeline/start_pipeline.sh \
+    && sed -i 's/resnet50_256/senet50_256/g' /webapps/vgg_face_search/service/settings.py
 
-# Install caffe 1.0, ffmpeg and davidsandberg's facenet (Dec 2017)
+# Install caffe 1.0, SENet modifications (Sep 2017), ffmpeg and davidsandberg's facenet (Dec 2017)
 RUN wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp \
     && unzip /tmp/1.0.zip -d /webapps/vgg_face_search/dependencies/ \
     && mv /webapps/vgg_face_search/dependencies/caffe* /webapps/vgg_face_search/dependencies/caffe \
@@ -61,6 +62,11 @@ RUN wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp \
     && wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz -O /tmp/ffmpeg-release-64bit-static.tar.xz \
     && tar -xf /tmp/ffmpeg-release-64bit-static.tar.xz -C /webapps/vgg_face_search/dependencies/ \
     && mv /webapps/vgg_face_search/dependencies/ffmpeg* /webapps/vgg_face_search/dependencies/ffmpeg \
+    && wget https://github.com/lishen-shirley/SENet/archive/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -P /tmp \
+    && unzip /tmp/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -d /webapps/vgg_face_search/dependencies/ \
+    && mv /webapps/vgg_face_search/dependencies/SENet* /webapps/vgg_face_search/dependencies/SENet \
+    && cp -v /webapps/vgg_face_search/dependencies/SENet/include/caffe/layers/* /webapps/vgg_face_search/dependencies/caffe/include/caffe/layers/ \
+    && cp -v /webapps/vgg_face_search/dependencies/SENet/src/caffe/layers/* /webapps/vgg_face_search/dependencies/caffe/src/caffe/layers/ \
     && rm -rf /tmp/*.zip \
     && rm -rf /tmp/*.tar*
 
@@ -79,5 +85,5 @@ RUN cd /webapps/vgg_face_search/dependencies/caffe/ \
 
 # Download models. This is only here for reference. The models should not be copied inside the image to reduce the image size.
 #RUN cd /webapps/vgg_face_search/models/ \
-#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/resnet50_256.caffemodel \
-#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/resnet50_256.prototxt
+#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel \
+#    && wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt
