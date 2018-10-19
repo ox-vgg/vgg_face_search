@@ -16,7 +16,7 @@ The repository also includes a data-ingestion pipeline mechanism to extract face
 
 The two major dependencies are the face-detector and [Caffe](https://github.com/BVLC/caffe), in the case of ingesting videos [ffmpeg](https://www.ffmpeg.org/) is also a major dependency. They must be installed in the `dependencies` folder. See the `LICENSE.md` file for links to the license of these dependencies.
 
-The [Caffe](https://github.com/BVLC/caffe) model used for feature-extraction must be located in the `models` folder. For the Windows operating system, a `Resnet-50-256D` model is used. For macOS and Linux, a more accurate version is used: `SE-Resnet-50-256D`. Both models can download from the [GitHub repository of VGGFace2](https://github.com/ox-vgg/vgg_face2). See the `LICENSE.md` file for links to the license of this model.
+The [Caffe](https://github.com/BVLC/caffe) model used for feature-extraction must be located in the `models` folder. For the Windows operating system, a `Resnet-50-256D` model is used. For macOS and Linux, a more accurate version is used: `SE-Resnet-50-256D`. Both models can be downloaded from the [GitHub repository of VGGFace2](https://github.com/ox-vgg/vgg_face2). See the `LICENSE.md` file for links to the license of this model.
 
 Supported platforms
 -------------------
