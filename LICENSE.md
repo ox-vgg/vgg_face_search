@@ -35,3 +35,4 @@ constraints. For instance:
 5. For the license of the static build of ffmpeg for Linux see https://johnvansickle.com/ffmpeg/
 6. For the license of the static build of ffmpeg for macOS see https://ffmpeg.zeranoe.com/builds/readme/macos64/static/ffmpeg-20180411-9825f77-macos64-static-readme.txt
 7. For the license of the static build of ffmpeg for MS Windows x64 see https://ffmpeg.zeranoe.com/builds/readme/win64/static/ffmpeg-20180412-8d381b5-win64-static-readme.txt
+8. For the license of DLib see http://dlib.net/license.html

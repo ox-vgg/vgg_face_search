@@ -28,11 +28,16 @@ Installation Instructions
 
 The service can run with or without GPU support. However, a different face-detector is used on each case, so different dependencies are needed.
 
-Without GPU support, a CPU face-detector extracted from [facenet](https://github.com/davidsandberg/facenet) is used, along with [Caffe](https://github.com/BVLC/caffe) and pycaffe.
+For the Windows operating system, [DLib](http://dlib.net/) is used for face detection. Enabling GPU support depends on how DLib is deployed on the target computer.
 
-With GPU support, the GPU [Faster R-CNN python implementation](https://github.com/rbgirshick/py-faster-rcnn ) is used. This software includes its own version of Caffe, so there is no need to download another version.
+For non-Windows operating systems:
+
+ + Without GPU support: a CPU face-detector extracted from [facenet](https://github.com/davidsandberg/facenet) is used, along with [Caffe](https://github.com/BVLC/caffe) and pycaffe.
+ + With GPU support: the GPU [Faster R-CNN python implementation](https://github.com/rbgirshick/py-faster-rcnn ) is used. This software includes its own version of Caffe, so there is no need to download another version.
 
 In the `install` directory you will find installation scripts for Ubuntu and macOS, for the GPU-only and the CPU-only versions of the service. For having a service that supports both the GPU and the CPU just use the GPU-only installer and then download `facenet` into the `dependencies` folder. See the CPU-only installation script for the way to do it.
+
+If you want to install the service in Windows, see the [Windows installer for VFF](https://gitlab.com/vgg/vgg_frontend/blob/master/install/install_vff_win64.bat) to get a rough idea of how to do the deployment.
 
 Usage
 -----
