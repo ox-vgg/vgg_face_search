@@ -658,9 +658,14 @@ class FaceRetrieval(object):
         if settings.KDTREES_RANKING_ENABLED:
             bests = []
             accum_len = 0
+            # split number of results among kdtrees to create smaller sublists of results ...
+            max_results_num_splitted = (settings.MAX_RESULTS_RETURN*1.0)/len(self.kdtrees)
+            # ... but always get one more element to avoid rounding errors when converting
+            # to int, and this does not harm the sorting process.
+            max_results_num_splitted = int(max_results_num_splitted + 1)
             for idx in range(len(self.kdtrees)):
-                dd, ii = self.kdtrees[idx].query(self.query_data[query_id]["features"], k=settings.MAX_RESULTS_RETURN)
-                for idx2 in range(settings.MAX_RESULTS_RETURN):
+                dd, ii = self.kdtrees[idx].query(self.query_data[query_id]["features"], k=max_results_num_splitted)
+                for idx2 in range(max_results_num_splitted):
                     bests.append( ( dd[0][idx2], ii[0][idx2] + accum_len ) )
                 accum_len = accum_len + self.kdtrees[idx].n
             bests_sorted = numpy.array(bests, dtype=[('dist', float), ('idx', int)])
