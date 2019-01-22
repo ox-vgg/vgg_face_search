@@ -693,7 +693,9 @@ class FaceRetrieval(object):
                 ranking_dict['score'] = dst[i]
             else:
                 ranking_dict['score'] = dst[idx][0]
-            if ranking_dict['score'] > settings.MAX_RESULTS_SCORE:
+            # change the score of all "bad" results according to the MAX_RESULTS_SCORE settings,
+            # but only if it is enable (i.e. MAX_RESULTS_SCORE > 0 )
+            if settings.MAX_RESULTS_SCORE > 0 and ranking_dict['score'] > settings.MAX_RESULTS_SCORE:
                 ranking_dict['score'] = -1
             # check underlying type of results and
             # remove one dimension if necessary
