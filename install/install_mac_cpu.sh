@@ -57,7 +57,7 @@ pip install matplotlib==2.1.0
 pip install scikit-image==0.13.1
 pip install scikit-learn==0.19.1
 pip install dill==0.2.8.2
-pip install --upgrade https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.4.0-py2-none-any.whl
+pip install https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.4.0-py2-none-any.whl
 
 # download caffe 1.0
 wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp
@@ -82,8 +82,8 @@ wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt
 
 # download static ffmpeg
-wget https://ffmpeg.zeranoe.com/builds/macos64/static/ffmpeg-20180411-9825f77-macos64-static.zip -P /tmp
-unzip /tmp/ffmpeg-20180411-9825f77-macos64-static.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
+wget https://ffmpeg.zeranoe.com/builds/macos64/static/ffmpeg-4.1.1-macos64-static.zip -P /tmp
+unzip /tmp/ffmpeg-4.1.1-macos64-static.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
 mv $VGG_FACE_DEPENDENCIES_FOLDER/ffmpeg*  $VGG_FACE_DEPENDENCIES_FOLDER/ffmpeg
 sed -i '.sed' "s|ffmpeg|${VGG_FACE_DEPENDENCIES_FOLDER}/ffmpeg/bin/ffmpeg|g" $VGG_FACE_SRC_FOLDER/pipeline/start_pipeline.sh
 

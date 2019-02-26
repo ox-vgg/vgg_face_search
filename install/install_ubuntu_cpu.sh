@@ -48,6 +48,7 @@ sudo pip install virtualenv
 virtualenv .
 source ./bin/activate
 pip install --upgrade pip
+pip install setuptools==40.4.3
 pip install simplejson==3.8.2
 pip install Pillow==2.3.0
 pip install numpy==1.13.3
@@ -57,7 +58,7 @@ pip install matplotlib==2.1.0
 pip install scikit-image==0.13.1
 pip install scikit-learn==0.19.1
 pip install dill==0.2.8.2
-pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
+pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
 
 # download caffe
 wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp
@@ -82,8 +83,8 @@ wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt
 
 # download static ffmpeg
-wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz -O /tmp/ffmpeg-release-64bit-static.tar.xz
-tar -xf /tmp/ffmpeg-release-64bit-static.tar.xz -C $VGG_FACE_DEPENDENCIES_FOLDER/
+wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O /tmp/ffmpeg-release-amd64-static.tar.xz
+tar -xf /tmp/ffmpeg-release-amd64-static.tar.xz -C $VGG_FACE_DEPENDENCIES_FOLDER/
 mv $VGG_FACE_DEPENDENCIES_FOLDER/ffmpeg*  $VGG_FACE_DEPENDENCIES_FOLDER/ffmpeg
 sed -i "s|ffmpeg|${VGG_FACE_DEPENDENCIES_FOLDER}/ffmpeg/ffmpeg|g" $VGG_FACE_SRC_FOLDER/pipeline/start_pipeline.sh
 

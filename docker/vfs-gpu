@@ -78,8 +78,8 @@ RUN cd /webapps/vgg_face_search/dependencies/face-py-faster-rcnn/caffe-fast-rcnn
     && make pycaffe
 
 # Install ffmpeg and compile shot detector
-RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz -O /tmp/ffmpeg-release-64bit-static.tar.xz \
-    && tar -xf /tmp/ffmpeg-release-64bit-static.tar.xz -C /webapps/vgg_face_search/dependencies/ \
+RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O /tmp/ffmpeg-release-amd64-static.tar.xz \
+    && tar -xf /tmp/ffmpeg-release-amd64-static.tar.xz -C /webapps/vgg_face_search/dependencies/ \
     && mv /webapps/vgg_face_search/dependencies/ffmpeg* /webapps/vgg_face_search/dependencies/ffmpeg \
     && sed -i "s|ffmpeg|/webapps/vgg_face_search/dependencies/ffmpeg/ffmpeg|g" /webapps/vgg_face_search/pipeline/start_pipeline.sh \
     && rm -rf /tmp/*.tar* \

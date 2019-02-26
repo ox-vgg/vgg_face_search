@@ -38,10 +38,10 @@ RUN apt-get update && apt-get install -y \
 
 # Create requirements file, install all requirements, download git repo and configure vgg_face_search
 RUN pip install --upgrade pip \
-    && printf "simplejson==3.8.2\nPillow==2.3.0\nnumpy==1.13.3\nlxml==4.1.1\nscipy==0.18.1\nmatplotlib==2.1.0\nscikit-image==0.13.1\nscikit-learn==0.19.1\ndill==0.2.8.2" > /tmp/requirements.txt \
+    && printf "setuptools==40.4.3\nsimplejson==3.8.2\nPillow==2.3.0\nnumpy==1.15.2\nlxml==4.1.1\nscipy==0.18.1\nmatplotlib==2.1.0\nscikit-image==0.13.1\nscikit-learn==0.19.1\ndill==0.2.8.2" > /tmp/requirements.txt \
     && pip install -r /tmp/requirements.txt \
     && rm  /tmp/requirements.txt \
-    && pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl \
+    && pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl \
     && mkdir /webapps/ \
     && chmod 777 /webapps/ \
     && cd /webapps/ \
@@ -59,8 +59,8 @@ RUN wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp \
     && wget https://github.com/davidsandberg/facenet/archive/28d3bf2fa7254037229035cac398632a5ef6fc24.zip -P /tmp \
     && unzip /tmp/28d3bf2fa7254037229035cac398632a5ef6fc24.zip -d /webapps/vgg_face_search/dependencies/ \
     && mv /webapps/vgg_face_search/dependencies/facenet* /webapps/vgg_face_search/dependencies/facenet \
-    && wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz -O /tmp/ffmpeg-release-64bit-static.tar.xz \
-    && tar -xf /tmp/ffmpeg-release-64bit-static.tar.xz -C /webapps/vgg_face_search/dependencies/ \
+    && wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O /tmp/ffmpeg-release-amd64-static.tar.xz \
+    && tar -xf /tmp/ffmpeg-release-amd64-static.tar.xz -C /webapps/vgg_face_search/dependencies/ \
     && mv /webapps/vgg_face_search/dependencies/ffmpeg* /webapps/vgg_face_search/dependencies/ffmpeg \
     && wget https://github.com/lishen-shirley/SENet/archive/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -P /tmp \
     && unzip /tmp/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -d /webapps/vgg_face_search/dependencies/ \
