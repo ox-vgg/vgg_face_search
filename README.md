@@ -53,3 +53,8 @@ Before running the service for the first time, please check the `service/setting
 If you already have adjusted the settings and have a dataset feature file, you should be ready to start the service. To do so, start a command-line terminal and use it to go inside the `service` folder, then execute the `start_backend_service.sh` script (`start_backend_service.bat` for Windows). Use that script file to define or modify any environment variables required by your local setup.
 
 The service should be reachable at the HOST and PORT specified in the settings.
+
+Wiki
+----
+
+The [Wiki](https://gitlab.com/vgg/vgg_face_search/wikis/home) explains the details about the communication API used in the service, as well as it includes other useful links and information.
