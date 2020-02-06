@@ -40,7 +40,7 @@ def rotate_and_detect(image_and_angle):
             scores = NO_FACE_DETECTED_SCORE
         return (dets, scores, img_rotated, angle)
     except Exception as e:
-        #print str(e)
+        #print (str(e))
         pass
     return (None, 0, None)
 
@@ -141,7 +141,7 @@ class FaceDetectorDlib(object):
                 return [det]
 
             except Exception as e:
-                print 'Exception in FaceDetectorDlib:', str(e)
+                print ('Exception in FaceDetectorDlib: ' + str(e))
                 pass
 
         return None

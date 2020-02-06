@@ -50,19 +50,19 @@ def custom_request(request, append_end=True):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.connect((settings.HOST, settings.PORT))
-    except socket.error, msg:
-        print 'Connect failed', msg
+    except socket.error as msg:
+        print ('Connect failed' + str(msg))
         return False
 
     sock.settimeout(TCP_TIMEOUT)
 
-    print 'Request to backend at port %s: %s' % (str(settings.PORT), request)
+    print ('Request to backend at port %s: %s' % (str(settings.PORT), request))
 
     if append_end:
         request += TCP_TERMINATOR
     total_sent = 0
     while total_sent < len(request):
-        sent = sock.send(request[total_sent:])
+        sent = sock.send(request[total_sent:].encode())
         if sent == 0:
             raise RuntimeError("Socket connection broken at port " + str(settings.PORT))
         total_sent = total_sent + sent
@@ -73,13 +73,14 @@ def custom_request(request, append_end=True):
         try:
             rep_chunk = sock.recv(BUFFER_SIZE)
             if not rep_chunk:
-                print 'Connection closed! at port ' + str(settings.PORT)
+                print ('Connection closed! at port ' + str(settings.PORT))
                 sock.close()
                 return False
+            rep_chunk = rep_chunk.decode()
             response = response + rep_chunk
             term_idx = response.find(TCP_TERMINATOR)
         except socket.timeout:
-            print 'Socket timeout at port ' + str(self.port)
+            print ('Socket timeout at port ' + str(self.port))
             sock.close()
             return False
 
@@ -116,24 +117,24 @@ if __name__ == "__main__":
 
     # 1) Connect to backend and test connection
 
-    print '** Sending selfTest'
+    print ('** Sending selfTest')
     req_obj = {'func': 'selfTest'}
     request = json.dumps(req_obj)
     response = custom_request(request)
     func_out = json.loads(response)
-    print 'Received response:'
-    print func_out
+    print ('Received response:')
+    print (func_out)
 
 
     # 2) Start a query by getting a query ID
 
-    print '** Sending getQueryId'
+    print ('** Sending getQueryId')
     req_obj = {'func': 'getQueryId', 'dataset': 'dummy'}
     request = json.dumps(req_obj)
     response = custom_request(request)
     func_out = json.loads(response)
-    print 'Received response:'
-    print func_out
+    print ('Received response:')
+    print (func_out)
     query_id = func_out['query_id']
 
     # 3) Add training samples from the folder specified in the parameters
@@ -143,71 +144,71 @@ if __name__ == "__main__":
                         pos_trs_fname in os.listdir(pos_trs_dir)]
 
     for pos_trs_path in pos_trs_paths:
-        print '** Sending addPosTrs ', pos_trs_path
+        print ('** Sending addPosTrs ' + pos_trs_path)
         req_obj = {'func': 'addPosTrs',
                    'query_id': query_id,
                    'impath': pos_trs_path}
         request = json.dumps(req_obj)
         response = custom_request(request)
         func_out = json.loads(response)
-        print 'Received response:'
-        print func_out
+        print ('Received response:')
+        print (func_out)
         if not func_out['success']: raise RuntimeError("addPosTrs")
 
     # 4) Train the classifier
 
-    print '** Sending train'
+    print ('** Sending train')
     req_obj = {'func': 'train',
                'query_id': query_id}
     request = json.dumps(req_obj)
     response = custom_request(request)
     func_out = json.loads(response)
-    print 'Received response:'
-    print func_out
+    print ('Received response:')
+    print (func_out)
     if not func_out['success']: raise RuntimeError("train")
 
     # 5) Rank results
 
-    print '** Sending rank'
+    print ('** Sending rank')
     req_obj = {'func': 'rank',
                'query_id': query_id}
     request = json.dumps(req_obj)
     response = custom_request(request)
     func_out = json.loads(response)
-    print 'Received response:'
-    print func_out
+    print ('Received response:')
+    print (func_out)
     if not func_out['success']: raise RuntimeError("rank")
 
     # 6) Get ranked results
 
-    print '** Sending getRanking'
+    print ('** Sending getRanking')
     req_obj = {'func': 'getRanking',
                'query_id': query_id}
     request = json.dumps(req_obj)
     response = custom_request(request)
     func_out = json.loads(response)
-    print 'Received response:'
+    print ('Received response:')
     #print func_out # avoid printing a very long output
     if not func_out['success']: raise RuntimeError("getRanking")
     rank_result = func_out['ranklist']
-    print 'Retrieved %d results' % len(rank_result)
+    print ('Retrieved %d results' % len(rank_result))
 
     # 7) Free the query in the backend to save memory
 
-    print '** Sending releaseQueryId'
+    print ('** Sending releaseQueryId')
     req_obj = {'func': 'releaseQueryId',
                'query_id': query_id}
     request = json.dumps(req_obj)
     response = custom_request(request)
     func_out = json.loads(response)
-    print 'Received response:'
-    print func_out
+    print ('Received response:')
+    print (func_out)
     if not func_out['success']: raise RuntimeError("releaseQueryId")
 
     # 9) (Optional) Save results to text file
 
     if args.output_file:
-        print '** Saving %d results to %s' %(len(rank_result), args.output_file)
+        print ('** Saving %d results to %s' %(len(rank_result), args.output_file))
         with open(args.output_file, 'w+') as outfile:
             json.dump(rank_result, outfile, indent=2)
 
@@ -215,10 +216,10 @@ if __name__ == "__main__":
 
     # clamp maximum number of results by the length of the results page
     max_display_results = min(args.max_num_results, len(rank_result))
-    print '** Only showing the first %d results. The columns below correspond to: #result, path, roi[x1,y1,x2,y2], score' % max_display_results
+    print ('** Only showing the first %d results. The columns below correspond to: #result, path, roi[x1,y1,x2,y2], score' % max_display_results)
     ctr = 1;
     for ritem in rank_result:
-        print '%d %s %s %f' % (ctr, ritem['path'], roi_str_to_list(ritem['roi']), ritem['score'])
+        print ('%d %s %s %f' % (ctr, ritem['path'], roi_str_to_list(ritem['roi']), ritem['score']))
         ctr = ctr + 1
         if ctr > max_display_results:
             break
@@ -230,7 +231,7 @@ if __name__ == "__main__":
         import matplotlib.pyplot as plt
         import matplotlib.image as mpimg
 
-        num_pages_for_visualization = max_display_results/(3*6)
+        num_pages_for_visualization = int(max_display_results/(3*6))
         for i in range(num_pages_for_visualization):
 
             rlist_plt = rank_result[(i*3*6):(i*3*6)+(3*6)]

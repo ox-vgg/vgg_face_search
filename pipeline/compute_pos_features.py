@@ -31,7 +31,7 @@ if __name__ == '__main__':
         with open(args.output_file, 'rb') as fin:
             previous_database = pickle.load(fin)
         if isinstance(previous_database, list):
-            print 'ERROR: This script creates a dictionary-based database and cannot be used to add information to the existing list-based database found at %s. Aborting !.' % args.output_file
+            print ('ERROR: This script creates a dictionary-based database and cannot be used to add information to the existing list-based database found at %s. Aborting !.' % args.output_file)
             sys.exit(1)
 
     # import the appropriate face detector, depending on CUDA being enabled or not
@@ -55,7 +55,7 @@ if __name__ == '__main__':
             img_path = img_path.replace('\n', '')
             if len(img_path) > 0:
                 full_path = os.path.join(args.dataset_base_path, img_path)
-                print 'Computing features for file %s' % (full_path)
+                print ('Computing features for file %s' % (full_path))
 
                 # read image
                 img = imutils.acquire_image(full_path)

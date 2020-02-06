@@ -78,14 +78,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if not os.path.exists(args.video_frames_path) or not os.path.exists(args.shot_boundaries):
-        print 'ERROR: Either the video frames or the shot boundaries are not found. Aborting !.'
+        print ('ERROR: Either the video frames or the shot boundaries are not found. Aborting !.')
         sys.exit(1)
 
     # acquire list of images
     video_frames_list = os.listdir(args.video_frames_path)
     video_frames_list.sort()
     if len(video_frames_list) == 0:
-        print 'ERROR: There are no frames in the video frames path. Aborting !.'
+        print ('ERROR: There are no frames in the video frames path. Aborting !.')
         sys.exit(1)
 
     # load previous database, if present
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         with open(args.output_file, 'rb') as fin:
             previous_database = pickle.load(fin)
         if isinstance(previous_database, list):
-            print 'ERROR: This script creates a dictionary-based database and cannot be used to add information to the existing list-based database found at %s. Aborting !.' % args.output_file
+            print ('ERROR: This script creates a dictionary-based database and cannot be used to add information to the existing list-based database found at %s. Aborting !.' % args.output_file)
             sys.exit(1)
 
     # import the appropriate face detector, depending on CUDA being enabled or not
@@ -203,7 +203,7 @@ if __name__ == '__main__':
                                 for index_faces_B in range(len(image_B_detections)):
                                     if image_B_tracks[index_faces_B] < 0: # only take into account faces with no-assigned tracks
                                         image_B_face_det = image_B_detections[index_faces_B]
-                                        #print "compare %s against %s" % (str(image_A_face_det), str(image_B_face_det))
+                                        #print ("compare %s against %s" % (str(image_A_face_det), str(image_B_face_det)))
                                         the_iou = get_iou(image_A_face_det, image_B_face_det)
                                         if the_iou > MIN_IOU:
                                             # found match, moving to next image
@@ -286,7 +286,7 @@ if __name__ == '__main__':
             if not os.path.exists(chose_image_path_in_datasets):
                 shutil.copyfile(os.path.join(args.video_frames_path, chosen_image_path), chose_image_path_in_datasets)
                 # print final frame path within the dataset folder, for other process to pick up
-                print destination_frames_path + os.path.sep + chosen_image_path
+                print (destination_frames_path + os.path.sep + chosen_image_path)
 
     # after processing all shots, save the results ...
 

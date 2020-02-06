@@ -28,7 +28,7 @@ def acquire_image(img_path):
 
             return img
     except Exception as e:
-        print e
+        print (e)
         pass
 
     return None
@@ -46,5 +46,5 @@ def save_image(img, img_path):
     try:
         skimage.io.imsave(img_path, img)
     except Exception as e:
-        print e
+        print (e)
         pass

@@ -21,7 +21,7 @@ def build_kdtrees(feats, split_size, thead_pool, filename):
                       the kd-trees
     """
     try:
-        print 'Building kd-trees for', filename
+        print ('Building kd-trees for ' + filename)
         num_feats = len(feats)
         splitted_feats = []
         if num_feats > split_size:
@@ -35,13 +35,13 @@ def build_kdtrees(feats, split_size, thead_pool, filename):
             splitted_feats = [ feats ]
         t = time.time()
         kdtrees = thead_pool.map( cKDTree, splitted_feats )
-        print 'Done building %d kd-trees in t=%f' %( len(kdtrees) , time.time() - t)
+        print ('Done building %d kd-trees in t=%f' %( len(kdtrees) , time.time() - t))
         t = time.time()
         with open(filename, 'wb') as f:
             dill.dump(kdtrees, f)
-        print 'Done saving kd-trees in t=', time.time() - t
+        print ('Done saving kd-trees in t=%f' % (time.time() - t))
     except Exception as e:
-        print 'Failed building kd-trees. Reason: ' + str(e)
+        print ('Failed building kd-trees. Reason: ' + str(e))
         pass
 
 
@@ -68,16 +68,16 @@ def load_kdtrees(filename):
                                 sub_kdtree = os.path.join(os.path.dirname(filename), entry)
                             else:
                                 sub_kdtree = entry
-                            print "Loading sub-kdtree file", sub_kdtree
+                            print ('Loading sub-kdtree file ' + sub_kdtree)
                             with open(sub_kdtree, 'rb') as fin_sub_kdtree:
                                 kdtrees.extend( dill.load(fin_sub_kdtree) )
                     else:
                         kdtrees.extend( kdtrees_file_content )
                 else:
                     kdtrees = []
-            print 'Done loading %d kd-trees in t=%f' % ( len(kdtrees), time.time() - t)
+            print ('Done loading %d kd-trees in t=%f' % ( len(kdtrees), time.time() - t))
     except Exception as e:
-        print 'Failed loading kd-trees. Reason: ' + str(e)
+        print ('Failed loading kd-trees. Reason: ' + str(e))
         kdtrees = []
         pass
 

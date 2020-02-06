@@ -105,7 +105,7 @@ class FaceDetectorFasterRCNN(object):
                         return [det]
                     else:
                         det_list = []
-                        for j in xrange(dets.shape[0]):
+                        for j in range(dets.shape[0]):
                             det = [int(dets[j, 0]), int(dets[j, 1]), int(dets[j, 2]), int(dets[j, 3]), dets[0, 4]]
                             # extend detection
                             extend_factor = self.face_rect_expand_factor
@@ -128,7 +128,7 @@ class FaceDetectorFasterRCNN(object):
                     return None
 
             except Exception as e:
-                print 'Exception in FaceDetectorFasterRCNN:', str(e)
+                print ('Exception in FaceDetectorFasterRCNN: ' + str(e))
                 pass
 
         return None

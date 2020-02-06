@@ -45,7 +45,7 @@ class ThreadedServer(object):
                 listening_thread = threading.Thread(target=self.listen_to_client, args=(client, backend_instance))
                 listening_thread.start()
             except KeyboardInterrupt as e:
-                print 'KeyboardInterrupt detected. Terminating Server !'
+                print ('KeyboardInterrupt detected. Terminating Server !')
                 backend_instance.worker_pool.terminate()
                 backend_instance.worker_pool.join()
                 break
@@ -63,24 +63,24 @@ class ThreadedServer(object):
         while True:
             try:
                 data = client.recv(1024)
-                request += data
+                request += data.decode()
                 if len(request) >= len(TCP_TERMINATOR):
                     if request[-len(TCP_TERMINATOR):] == TCP_TERMINATOR:
                         break
             except client.timeout:
-                print 'Socket timeout'
+                print ('Socket timeout')
                 client.close()
             except Exception as e:
-                print 'Exception in listenToClient:', str(e)
+                print ('Exception in listenToClient: ' + str(e))
                 client.close()
         try:
             request = request[:-len(TCP_TERMINATOR)]
             reply = backend_instance.serve_request(request, pid)
             reply = reply + TCP_TERMINATOR
-            client.send(reply)
-            print 'Backend sent the reply'
+            client.send(reply.encode())
+            print ('Backend sent the reply')
         except Exception as e:
-            print 'Exception in listenToClient:', str(e)
+            print ('Exception in listenToClient: ' + str(e))
             pass
 
         client.close()

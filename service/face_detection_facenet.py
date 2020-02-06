@@ -93,7 +93,7 @@ class FaceDetectorFacenetMTCNN(object):
                     return None
 
             except Exception as e:
-                print 'Exception in FaceDetectorFacenetMTCNN:', str(e)
+                print ('Exception in FaceDetectorFacenetMTCNN: ' + str(e))
                 pass
 
         return None
@@ -164,7 +164,7 @@ class FaceDetectorFacenetMTCNN(object):
                     return None
 
             except Exception as e:
-                print 'Exception in FaceDetectorFacenetMTCNN:', str(e)
+                print ('Exception in FaceDetectorFacenetMTCNN: ' + str(e))
                 pass
 
         return None

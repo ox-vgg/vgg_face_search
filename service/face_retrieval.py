@@ -55,7 +55,7 @@ def group_feature_extractor(image_list):
                 # add to list of features to be returned
                 list_of_feats.append(feat)
         except Exception as e:
-            print 'Exception in group_feature_extractor', e
+            print ('Exception in group_feature_extractor: ' + str(e))
             list_of_feats = []
             pass
     return list_of_feats
@@ -87,14 +87,14 @@ class FaceRetrieval(object):
             self.face_detector = face_detection_facenet.FaceDetectorFacenetMTCNN()
 
         if settings.KDTREES_RANKING_ENABLED:
-            print "Ranking with kdtrees is enabled"
+            print ('Ranking with kdtrees is enabled')
             if os.path.exists(settings.KDTREES_FILE):
-                print 'Found precomputed kdtrees...'
+                print ('Found precomputed kdtrees...')
                 self.kdtrees = kdutils.load_kdtrees(settings.KDTREES_FILE)
             else:
-                print 'DID NOT find precomputed kdtrees. The dataset features will not be accessible via kd-trees.'
+                print ('DID NOT find precomputed kdtrees. The dataset features will not be accessible via kd-trees.')
 
-        print 'Loading dataset...'
+        print ('Loading dataset...')
         # acquire dataset information the old-fashion way
         with open(settings.DATASET_FEATS_FILE, 'rb') as fin:
             database_content = pickle.load(fin)
@@ -108,7 +108,7 @@ class FaceRetrieval(object):
                 self.database['rois'].extend(database_content['rois'])
             elif isinstance(database_content, list):
                 for entry in database_content:
-                    print 'Loading sub-dataset', entry
+                    print ('Loading sub-dataset ' +  entry )
                     if os.path.sep not in entry:
                         # in this case, assume it is in the same directory as the DATASET_FEATS_FILE
                         sub_database = os.path.join(os.path.dirname(settings.DATASET_FEATS_FILE), entry)
@@ -126,12 +126,12 @@ class FaceRetrieval(object):
             else:
                 raise Exception('Cannot initialize FaceRetrieval. File %s contains corrupted information.' % settings.DATASET_FEATS_FILE)
 
-        print "Loaded database for %d tracks" % len(self.database['paths'])
+        print ('Loaded database for %d tracks' % len(self.database['paths']))
 
         # do one load of this to get things into the cache
         feature_extractor = face_features.FaceFeatureExtractor()
 
-        print "FaceRetrieval successfully initialized"
+        print ('FaceRetrieval successfully initialized')
 
 
     def prepare_success_json_str_(self, success):
@@ -155,7 +155,7 @@ class FaceRetrieval(object):
             Returns:
                 JSON formatted string
         """
-        print "Server is running"
+        print ('Server is running')
         return self.prepare_success_json_str_(True)
 
 
@@ -245,9 +245,9 @@ class FaceRetrieval(object):
         if self.query_data[str(query_id)]["training_started"]:
             # discard the image and return as if nothing happened
             if 'impath' in req_params:
-                print "Training already started. Skipping", os.path.basename(req_params['impath'])
+                print ('Training already started. Skipping ' + os.path.basename(req_params['impath']))
             else:
-                print "Training already started. Skipping image."
+                print ('Training already started. Skipping image.')
             return self.prepare_success_json_str_(True)
 
         # check image path is present
@@ -280,13 +280,13 @@ class FaceRetrieval(object):
                 xl, yl = roi.min(axis=0)
                 xu, yu = roi.max(axis=0)
                 roi = [xl, yl, xu, yu]
-                print 'Request specifies ROI', roi
+                print ('Request specifies ROI ' + str(roi))
                 # ... check there is a face on the roi
                 theim = imutils.acquire_image(impath)
                 crop_img = theim[yl:yu, xl:xu, :]
                 det = self.face_detector.detect_faces(crop_img, return_best=True)
                 if numpy.all(det == None):
-                    print 'No detection found in specified ROI'
+                    print ('No detection found in specified ROI')
                     return self.prepare_success_json_str_(False)
                 else:
                     # If found, replace the previous with a more accurate one
@@ -296,7 +296,7 @@ class FaceRetrieval(object):
                     # Plus we have to get rid of the detection score det[4]
                     det = [int(det[0]), int(det[1]), int(det[2]), int(det[3])]
                     roi = [det[0]+xl, det[1]+yl, det[2]+xl, det[3]+yl]
-                    print 'Automatically adjusting ROI to more accurate region', roi
+                    print ('Automatically adjusting ROI to more accurate region ' + str(roi))
             else:
                 roi = None
         else:
@@ -322,12 +322,12 @@ class FaceRetrieval(object):
                 if numpy.all(det != None):
 
                     # if a face is found, save it
-                    print 'Single ROI detected'
+                    print ('Single ROI detected')
                     # The coordinates should be already integers, but some basic
                     # conversion is need for compatibility with all face detectors.
                     # Plus we have to get rid of the detection score det[4]
                     det = [int(det[0][0]), int(det[0][1]), int(det[0][2]), int(det[0][3])]
-                    print 'final det', det
+                    print ('final det ' + str(det))
 
                     img["path"] = impath
                     img["roi"] = det
@@ -336,7 +336,7 @@ class FaceRetrieval(object):
                     else:
                         img["anno"] = -1
                 else:
-                    print 'No detection found'
+                    print ('No detection found')
                     return self.prepare_success_json_str_(True)
 
             else:
@@ -368,9 +368,9 @@ class FaceRetrieval(object):
             if self.query_data[str(query_id)]["training_started"] == False:
                 self.query_data[str(query_id)]["images"].append(img)
             else:
-                print "Training already started. Skipping", os.path.basename(impath)
+                print ('Training already started. Skipping ' + os.path.basename(impath))
         else:
-            print "Query already finished. Skipping", os.path.basename(impath)
+            print ('Query already finished. Skipping ' + os.path.basename(impath))
 
         # return with success==True
         return self.prepare_success_json_str_(True)
@@ -423,7 +423,7 @@ class FaceRetrieval(object):
 
         query_id = str(query_id)
         if len(self.query_data[query_id]["images"]) == 0:
-            print "No training images found"
+            print ('No training images found')
             return self.prepare_success_json_str_(False)
 
         results = None
@@ -433,7 +433,7 @@ class FaceRetrieval(object):
 
         try:
             # distribute list of images among helper workers
-            print "Dividing training images among workers"
+            print ('Dividing training images among workers')
             num_images = len(self.query_data[query_id]["images"])
             num_images_per_worker = int(round(num_images/(1.0*settings.NUMBER_OF_HELPER_WORKERS)))
             query_data_groups = []
@@ -460,11 +460,11 @@ class FaceRetrieval(object):
                         query_data_groups.append([])
 
             # execute parallel feature extraction by groups
-            print "Computing features"
+            print ('Computing features')
             results = self.worker_pool.map_async(group_feature_extractor, query_data_groups).get(settings.FEATURES_EXTRACTION_TIMEOUT)
         except Exception as e:
-            print 'Exception while computing features:', str(e)
-            print traceback.format_exc()
+            print ('Exception while computing features: ' +  str(e))
+            print (traceback.format_exc())
             pass
 
         if results:
@@ -481,7 +481,7 @@ class FaceRetrieval(object):
 
             # done
             self.query_data[query_id]["features"] = feats_average_norm
-            print 'Done computing features', time.time() - t
+            print ('Done computing features ' + str(time.time() - t))
             return self.prepare_success_json_str_(True)
         else:
             # Something went wrong with the feature computation
@@ -612,7 +612,7 @@ class FaceRetrieval(object):
         self.query_data[str(query_id)]["training_started"] = True
         try:
             query_id = str(query_id)
-            print self.query_data[query_id]["images"]
+            print (self.query_data[query_id]["images"])
             with open(annofile, 'w') as out_file:
                 for img in self.query_data[query_id]["images"]:
                     det = img["roi"]
@@ -625,11 +625,11 @@ class FaceRetrieval(object):
                     out_file.write(out_str)
 
             self.query_data[query_id]["anno_path"] = str(annofile)
-            print self.query_data[query_id]["anno_path"]
+            print (self.query_data[query_id]["anno_path"])
 
         except Exception as e:
 
-            print "Could not save annotations:", str(e)
+            print ('Could not save annotations: ' + str(e))
             return self.prepare_success_json_str_(False)
 
         return self.prepare_success_json_str_(True)
@@ -653,7 +653,7 @@ class FaceRetrieval(object):
             return self.prepare_success_json_str_(False)
 
         query_id = str(query_id)
-        print "Ranking Data"
+        print ('Ranking Data')
 
         if settings.KDTREES_RANKING_ENABLED:
             bests = []
@@ -677,7 +677,7 @@ class FaceRetrieval(object):
             ranking_indexes = numpy.argsort(dst, axis=None)
             ranking_indexes = ranking_indexes[0:settings.MAX_RESULTS_RETURN]
 
-        print 'Done computing distances'
+        print ('Done computing distances')
 
         ranking_list = []
         for i in range(len(ranking_indexes)):
@@ -706,7 +706,7 @@ class FaceRetrieval(object):
 
         self.query_data[query_id]["rankings"] = ranking_list
 
-        print 'Ranking Done'
+        print ('Ranking Done')
         return self.prepare_success_json_str_(True)
 
 
@@ -783,5 +783,5 @@ class FaceRetrieval(object):
             else:
                 return self.prepare_success_json_str_(False)
         except Exception as e:
-            print 'Exception in serve_request:', str(e)
+            print ('Exception in serve_request: ' + str(e))
             return self.prepare_success_json_str_(False)

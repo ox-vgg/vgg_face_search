@@ -32,11 +32,11 @@ def build_database_features_kdtrees():
     """
     try:
         if os.path.exists(settings.KDTREES_FILE):
-            print 'Found kd-trees file. Nothing to be done'
+            print ('Found kd-trees file. Nothing to be done')
         else:
             worker_pool = multiprocessing.Pool(processes=settings.NUMBER_OF_HELPER_WORKERS)
             kdtrees = []
-            print 'Building kd-trees for', settings.DATASET_FEATS_FILE
+            print ('Building kd-trees for ' + settings.DATASET_FEATS_FILE)
             with open(settings.DATASET_FEATS_FILE, 'rb') as fin:
                 database_content = pickle.load(fin)
                 if isinstance(database_content, dict):
@@ -50,7 +50,7 @@ def build_database_features_kdtrees():
                             sub_database = os.path.join(os.path.dirname(settings.DATASET_FEATS_FILE), entry)
                         else:
                             sub_database = entry
-                        print 'Loading sub-database', entry
+                        print ('Loading sub-database ' + entry)
                         sub_kdtree_fname = "kdtree_" + entry
                         with open(sub_database, 'rb') as fin_chunk:
                             database_chunk_content = pickle.load(fin_chunk)
@@ -61,12 +61,12 @@ def build_database_features_kdtrees():
                         kdtrees.append(sub_kdtree_fname)
 
                     # save kd-tree list
-                    print 'Saving kd-tree list', kdtrees
+                    print ('Saving kd-tree list ' + str(kdtrees))
                     with open(settings.KDTREES_FILE, 'wb') as fout:
                         dill.dump(kdtrees, fout)
 
     except Exception as e:
-        print 'Failed building kd-trees. Reason: ' + str(e)
+        print ('Failed building kd-trees. Reason: ' + str(e))
         pass
 
 
@@ -86,7 +86,7 @@ def remove_features_from_database():
         of the sub-databases will be produced as well.
     """
     try:
-        print 'Loading database', settings.DATASET_FEATS_FILE
+        print ('Loading database ' + settings.DATASET_FEATS_FILE)
         with open(settings.DATASET_FEATS_FILE, 'rb') as fin:
             database_content = pickle.load(fin)
             if isinstance(database_content, dict):
@@ -95,7 +95,7 @@ def remove_features_from_database():
                 database['rois'].extend(database_content['rois'])
                 # save to new database file
                 NEW_DATASET_FILE = settings.DATASET_FEATS_FILE.replace('.pkl', '_nofeats.pkl')
-                print 'Generating new database', NEW_DATASET_FILE
+                print ('Generating new database ' + NEW_DATASET_FILE)
                 with open(NEW_DATASET_FILE, 'wb') as fout:
                     pickle.dump(database, fout, pickle.HIGHEST_PROTOCOL)
             elif isinstance(database_content, list):
@@ -106,7 +106,7 @@ def remove_features_from_database():
                         sub_database = os.path.join(os.path.dirname(settings.DATASET_FEATS_FILE), entry)
                     else:
                         sub_database = entry
-                    print 'Loading sub-database', sub_database
+                    print ('Loading sub-database ' + sub_database)
                     with open(sub_database, 'rb') as fin_chunk:
                         database_chunk_content = pickle.load(fin_chunk)
                     database = {'paths': [], 'rois': []}
@@ -114,17 +114,17 @@ def remove_features_from_database():
                     database['rois'].extend(database_chunk_content['rois'])
                     # save to new sub-database file
                     NEW_SUB_DATASET_FILE = sub_database.replace('.pkl', '_nofeats.pkl')
-                    print 'Generating new sub-database', NEW_SUB_DATASET_FILE
+                    print ('Generating new sub-database ' + NEW_SUB_DATASET_FILE)
                     with open(NEW_SUB_DATASET_FILE, 'wb') as fout:
                         pickle.dump(database, fout, pickle.HIGHEST_PROTOCOL)
                     database_list.append(entry.replace('.pkl', '_nofeats.pkl'))
                 # save to new database file
                 NEW_DATASET_FILE = settings.DATASET_FEATS_FILE.replace('.pkl', '_nofeats.pkl')
-                print 'Generating new database', NEW_DATASET_FILE
+                print ('Generating new database ' + NEW_DATASET_FILE)
                 with open(NEW_DATASET_FILE, 'wb') as fout:
                     pickle.dump(database_list, fout, pickle.HIGHEST_PROTOCOL)
             else:
                 raise Exception('File %s contains corrupted information.' % settings.DATASET_FEATS_FILE)
     except Exception as e:
-        print 'Failed building new database. Reason: ' + str(e)
+        print ('Failed building new database. Reason: ' + str(e))
         pass

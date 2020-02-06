@@ -109,7 +109,7 @@ class FaceFeatureExtractor(object):
                 return feat
 
             except Exception as e:
-                print 'Exception in FaceFeatureExtractor:', str(e)
+                print ('Exception in FaceFeatureExtractor: ' + str(e))
                 pass
 
         return None
