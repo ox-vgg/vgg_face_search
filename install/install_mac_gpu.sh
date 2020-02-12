@@ -2,10 +2,9 @@
 
 # - This script has been tested in a clean macOS High Sierra 10.13.3
 # - It assumes Homebrew is available in the system (https://brew.sh/).
-# - If used to install pip and virtualenv, it will require a sudoer user.
+# - If used to install pip and protobuf, it will require a sudoer user.
 # - It asumes the CUDA driver and toolkit are already installed in standard locations. Define CUDA_HOME if possible. See the
 #   commented environment variable definitions below.
-# - All python dependencies are installed in a python virtual environment to avoid conflicts with pre-installed python packages
 # - VGG_FACE_SRC_FOLDER should not exist
 # - See also the last part of the script where $HOME/.profile is modified.
 # - Compilation notes:
@@ -29,44 +28,42 @@ brew install jpeg libpng libtiff
 # install pip and virtualenv, which requires sudo access
 #wget https://bootstrap.pypa.io/get-pip.py -P /tmp
 #sudo python /tmp/get-pip.py
-#sudo pip install virtualenv
 
 # caffe dependencies
 brew install -vd snappy leveldb gflags glog szip lmdb
-brew install -vd hdf5 opencv
+brew install -vd hdf5
+brew install -vd opencv@2
 brew install -vd tesseract
-brew install -vd protobuf@2.6
-brew install -vd boost@1.59 boost-python@1.59
+brew install -vd boost@1.59 boost-python
 brew install -vd openblas
-brew link --force protobuf@2.6
-brew link --force boost@1.59
-brew link --force boost-python@1.59
+brew link --force opencv@2
+brew link --overwrite --force boost@1.59
 
 # download vgg_face_search git repo and create virtual environment
 wget https://gitlab.com/vgg/vgg_face_search/-/archive/master/vgg_face_search-master.zip -O /tmp/vgg_face_search.zip
 unzip /tmp/vgg_face_search.zip -d $VGG_FACE_INSTALL_FOLDER/
 mv $VGG_FACE_INSTALL_FOLDER/vgg_face_search*  $VGG_FACE_SRC_FOLDER
-cd $VGG_FACE_SRC_FOLDER
-virtualenv .
 sed -i '.sed' 's/CUDA_ENABLED = False/CUDA_ENABLED = True/g' $VGG_FACE_SRC_FOLDER/service/settings.py
 sed -i '.sed' 's/resnet50_256/senet50_256/g' $VGG_FACE_SRC_FOLDER/service/settings.py
-source ./bin/activate
 
-# register the numpy version used by opencv, so that python-opencv can be used in the virtualenv
-BREW_NUMPY_VERSION=$(brew info numpy | grep Cellar/numpy | awk -F '[/| |_]' '{print $6}' )
-
-# register the protobuf installed by homebrew, so that pycaffe can be used in the virtualenv
-PROTOBUF_NUMPY_VERSION=$(brew info protobuf@2.6 | grep Cellar/protobuf@2.6 | awk -F '[/| |_]' '{print $6}' )
+# download, compile and install protobuf-3.1.0, newer versions of protobuf won't work
+wget https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protobuf-cpp-3.1.0.zip -O /tmp/protobuf-cpp-3.1.0.zip
+unzip /tmp/protobuf-cpp-3.1.0.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
+cd $VGG_FACE_DEPENDENCIES_FOLDER/protobuf-3.1.0/
+./configure CC=clang CXX=clang++ CXXFLAGS='-std=c++11 -stdlib=libc++ -O3 -g' LDFLAGS='-stdlib=libc++' LIBS="-lc++ -lc++abi"
+make -j 4
+sudo make install
 
 # python dependencies
+cd $VGG_FACE_SRC_FOLDER
 pip install simplejson==3.8.2
 pip install Pillow==2.3.0
-pip install numpy==$BREW_NUMPY_VERSION
+pip install numpy==1.16.2
 pip install Cython==0.27.3
 pip install scipy==0.18.1
 pip install matplotlib==2.1.0
 pip install scikit-image==0.13.1
-pip install protobuf==$PROTOBUF_NUMPY_VERSION
+pip install protobuf==3.1.0
 pip install easydict==1.7
 pip install pyyaml==3.12
 pip install six==1.11.0
@@ -111,11 +108,12 @@ rm -rf /tmp/*.zip
 # compile caffe-fast-rcnn
 cd $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn
 cp Makefile.config.example Makefile.config
-sed -i '.sed' 's/# OPENCV_VERSION := 3/OPENCV_VERSION := 3/g' Makefile.config  # homebrew will install opencv3
 sed -i '.sed' 's/BLAS := atlas/BLAS := open/g' Makefile.config
 sed -i '.sed' 's/# BLAS_INCLUDE := $(/BLAS_INCLUDE := $(/g' Makefile.config
 sed -i '.sed' 's/# BLAS_LIB := $(/BLAS_LIB := $(/g' Makefile.config
 sed -i '.sed' 's/# PYTHON_INCLUDE +=/PYTHON_INCLUDE +=/g' Makefile.config
+sed -i '.sed' 's/# Configure build/CXXFLAGS += -std=c++11/g' Makefile
+sed -i '.sed' 's/boost_python/boost_python27/g' Makefile
 make all
 make pycaffe
 
@@ -127,9 +125,9 @@ cd build
 cmake -DBOOST_ROOT=$BREW_BOOST_ROOT ../
 make
 
-# Make cv2 available in the virtualenv
-CV2_LOCATION=$(brew info opencv | grep /usr/local/Cellar | cut -d' ' -f1)
-ln -s $CV2_LOCATION/lib/python2.7/site-packages/cv2.so $VGG_FACE_SRC_FOLDER/lib/python2.7/cv2.so
+# Make cv2 available locally
+CV2_LOCATION=$(brew info opencv@2 | grep /usr/local/Cellar | cut -d' ' -f1)
+cp $CV2_LOCATION/lib/python2.7/site-packages/cv2.so $HOME/Library/Python/2.7/lib/python/site-packages
 
 # some minor adjustments
 sed -i '.sed' 's/source ..\//source /g' $VGG_FACE_SRC_FOLDER/service/start_backend_service.sh

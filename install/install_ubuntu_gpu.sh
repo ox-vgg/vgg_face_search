@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# - This script is to be run in a clean Ubuntu 14.04 LTS machine, by a sudoer user.
+# - This script is to be run in a clean Ubuntu 16 LTS machine, by a sudoer user.
 # - VGG_FACE_SRC_FOLDER should not exist
 # - All python dependencies are installed in a python virtual environment to avoid conflicts with pre-installed python packages
 # - Make sure the NVIDIA CUDA Toolkit is installed and that 'nvcc' is reachable. See the commented environment variable
@@ -40,7 +40,7 @@ sudo apt-get install -y python-pip
 sudo apt-get install -y python-dev
 sudo apt-get install -y gfortran
 sudo apt-get install -y libz-dev libjpeg-dev libfreetype6-dev
-sudo apt-get install -y python-opencv
+sudo apt-get install -y python-opencv python-tk
 
 # setup folders and download git repo
 cd $VGG_FACE_INSTALL_FOLDER
@@ -109,6 +109,9 @@ cd $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn
 cp Makefile.config.example Makefile.config
 sed -i 's/# WITH_PYTHON_LAYER/WITH_PYTHON_LAYER/g' Makefile.config
 sed -i 's/\/usr\/include\/python2.7/\/usr\/include\/python2.7 \/usr\/local\/lib\/python2.7\/dist-packages\/numpy\/core\/include/g' Makefile.config
+sed -i 's/INCLUDE_DIRS :=/INCLUDE_DIRS := \/usr\/include\/hdf5\/serial\/ /g' Makefile.config
+sed -i 's/LIBRARY_DIRS :=/LIBRARY_DIRS := \/usr\/lib\/x86_64-linux-gnu\/hdf5\/serial\/ /g' Makefile.config
+sed -i 's/# Configure build/CXXFLAGS += -std=c++11/g' Makefile
 make all
 make pycaffe
 
@@ -120,7 +123,7 @@ cmake -DBoost_INCLUDE_DIR=/usr/include/ ../
 make
 
 # make cv2 available in the virtualenv
-ln -s /usr/lib/python2.7/dist-packages/cv2.so $VGG_FACE_SRC_FOLDER/lib/python2.7/cv2.so
+cp /usr/lib/python2.7/dist-packages/cv2*.so $VGG_FACE_SRC_FOLDER/lib/python2.7/cv2.so
 
 # some minor adjustments
 sed -i 's/source ..\//source /g' $VGG_FACE_SRC_FOLDER/service/start_backend_service.sh
