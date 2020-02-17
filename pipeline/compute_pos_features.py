@@ -34,16 +34,10 @@ if __name__ == '__main__':
             print ('ERROR: This script creates a dictionary-based database and cannot be used to add information to the existing list-based database found at %s. Aborting !.' % args.output_file)
             sys.exit(1)
 
-    # import the appropriate face detector, depending on CUDA being enabled or not
-    if settings.CUDA_ENABLED:
-        import face_detection_faster_rcnn
-        face_detector = face_detection_faster_rcnn.FaceDetectorFasterRCNN()
-    elif 'Windows' in platform.system():
-        import face_detection_dlib
-        face_detector = face_detection_dlib.FaceDetectorDlib()
-    else:
-        import face_detection_facenet
-        face_detector = face_detection_facenet.FaceDetectorFacenetMTCNN()
+    # import face detector
+    import face_detection_retinaface
+    face_detector = face_detection_retinaface.FaceDetectorRetinaFace()
+
     # import and create face feature extractor
     import face_features
     feature_extractor = face_features.FaceFeatureExtractor()

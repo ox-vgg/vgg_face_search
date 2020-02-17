@@ -16,26 +16,19 @@ The repository also includes a data-ingestion pipeline mechanism to extract face
 
 The two major dependencies are the face-detector and [Caffe](https://github.com/BVLC/caffe), in the case of ingesting videos [ffmpeg](https://www.ffmpeg.org/) is also a major dependency. They must be installed in the `dependencies` folder. See the `LICENSE.md` file for links to the license of these dependencies.
 
-The [Caffe](https://github.com/BVLC/caffe) model used for feature-extraction must be located in the `models` folder. For the Windows operating system, a `Resnet-50-256D` model is used. For macOS and Linux, a more accurate version is used: `SE-Resnet-50-256D`. Both models can be downloaded from the [GitHub repository of VGGFace2](https://github.com/ox-vgg/vgg_face2). See the `LICENSE.md` file for links to the license of this model.
+The [Caffe](https://github.com/BVLC/caffe) model used for feature-extraction must be located in the `models` folder. For the Windows operating system, a `Resnet-50-256D` model is used. For macOS and Ubuntu, a more accurate version is used: `SE-Resnet-50-256D`. Both models can be downloaded from the [GitHub repository of VGGFace2](https://github.com/ox-vgg/vgg_face2). See the `LICENSE.md` file for links to the license of this model.
 
 Supported platforms
 -------------------
 
-Successfully deployed on Ubuntu 14 LTS, macOS High Sierra v10.13.3 and Windows10 x64.
+Successfully deployed on Ubuntu 14/16 LTS, macOS High Sierra v10.13.3 and Windows10 x64.
 
 Installation Instructions
 -------------------------
 
-The service can run with or without GPU support. However, a different face-detector is used on each case, so different dependencies are needed.
+Currently, this [Pytorch version of RetinaFace](https://github.com/biubug6/Pytorch_Retinaface) is used for face detection on all platforms, for which Python 3 and Pytorch are needed.
 
-For the Windows operating system, [DLib](http://dlib.net/) is used for face detection. Enabling GPU support depends on how DLib is deployed on the target computer.
-
-For non-Windows operating systems:
-
- + Without GPU support: a CPU face-detector extracted from [facenet](https://github.com/davidsandberg/facenet) is used, along with [Caffe](https://github.com/BVLC/caffe) and pycaffe.
- + With GPU support: the GPU [Faster R-CNN python implementation](https://github.com/rbgirshick/py-faster-rcnn ) is used. This software includes its own version of Caffe, so there is no need to download another version.
-
-In the `install` directory you will find installation scripts for Ubuntu and macOS, for the GPU-only and the CPU-only versions of the service. For having a service that supports both the GPU and the CPU just use the GPU-only installer and then download `facenet` into the `dependencies` folder. See the CPU-only installation script for the way to do it.
+In the `install` directory you will find installation scripts for Ubuntu and macOS, for the GPU-only and the CPU-only versions of the service. For having a service that supports both the GPU and the CPU just use the GPU-only installer. See the installation scripts for the way to do it.
 
 If you want to install the service in Windows, see the [Windows installer for VFF](https://gitlab.com/vgg/vgg_frontend/blob/master/install/install_vff_win64.bat) to get a rough idea of how to do the deployment.
 
