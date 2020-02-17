@@ -9,18 +9,12 @@ import simplejson as json
 import time
 from scipy.spatial import distance as df
 import pickle
-import platform
 import traceback
 
 import imutils
 import settings
-# import the appropriate face detector, depending on CUDA being enabled or not
-if settings.CUDA_ENABLED:
-    import face_detection_faster_rcnn
-elif 'Windows' in platform.system():
-    import face_detection_dlib
-else:
-    import face_detection_facenet
+# import face detector
+import face_detection_retinaface
 # import face feature extractor
 import face_features
 
@@ -79,12 +73,7 @@ class FaceRetrieval(object):
         self.database = {'paths': [], 'rois': [], 'feats': []}
         self.kdtrees = []
         self.query_data = dict()
-        if settings.CUDA_ENABLED:
-            self.face_detector = face_detection_faster_rcnn.FaceDetectorFasterRCNN()
-        elif 'Windows' in platform.system():
-            self.face_detector = face_detection_dlib.FaceDetectorDlib()
-        else:
-            self.face_detector = face_detection_facenet.FaceDetectorFacenetMTCNN()
+        self.face_detector = face_detection_retinaface.FaceDetectorRetinaFace()
 
         if settings.KDTREES_RANKING_ENABLED:
             print ('Ranking with kdtrees is enabled')

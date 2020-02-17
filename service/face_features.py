@@ -8,14 +8,8 @@ import multiprocessing
 import skimage
 import settings
 
-# add pycaffe to the sys path, reuse the Caffe within face-py-faster-rcnn if possible
-caffe_fast_rcnn_path = os.path.join(settings.DEPENDENCIES_PATH, 'face-py-faster-rcnn', 'caffe-fast-rcnn', 'python')
-if caffe_fast_rcnn_path not in sys.path:
-    if os.path.exists(caffe_fast_rcnn_path):
-        sys.path.append(caffe_fast_rcnn_path)
-    else:
-        standard_caffe_path = os.path.join(settings.DEPENDENCIES_PATH, 'caffe', 'python')
-        sys.path.append(standard_caffe_path)
+# add pycaffe to the sys path
+sys.path.append(os.path.join(settings.DEPENDENCIES_PATH, 'caffe', 'python'))
 # suppress Caffe verbose prints
 os.environ['GLOG_minloglevel'] = '2'
 # finally import Caffe

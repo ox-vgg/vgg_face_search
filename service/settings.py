@@ -28,8 +28,6 @@ FEATURES_VECTOR_SIZE = 256
 
 FEATURES_EXTRACTION_TIMEOUT = 10
 
-GPU_FACE_DETECTION_CAFFE_MODEL = os.path.join(DEPENDENCIES_PATH, 'face-py-faster-rcnn', 'data', 'faster_rcnn_models', 'vgg16_faster_rcnn_iter_80000.caffemodel')
-
 NUMBER_OF_HELPER_WORKERS = 8
 
 KDTREES_RANKING_ENABLED = False
@@ -37,3 +35,7 @@ KDTREES_RANKING_ENABLED = False
 KDTREES_DATASET_SPLIT_SIZE = 100000
 
 KDTREES_FILE =  os.path.join(FILE_DIR, '..', 'kdtrees.pkl')
+
+FACE_DETECTION_MODEL = os.path.join(DEPENDENCIES_PATH, 'Pytorch_Retinaface', 'weights' , 'Resnet50_Final.pth')
+
+FACE_DETECTION_NETWORK = 'resnet50' # options are 'mobile0.25' or 'resnet50'
