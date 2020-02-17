@@ -10,6 +10,7 @@ os.environ['GLOG_minloglevel'] = '2'
 # add face-py-faster-rcn dependencies to python path
 sys.path.append(os.path.join(settings.DEPENDENCIES_PATH, 'face-py-faster-rcnn', 'caffe-fast-rcnn', 'python'))
 sys.path.append(os.path.join(settings.DEPENDENCIES_PATH, 'face-py-faster-rcnn', 'lib'))
+sys.path.append(os.path.join(settings.DEPENDENCIES_PATH, 'face-py-faster-rcnn', 'lib', 'utils'))
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
 from fast_rcnn.nms_wrapper import nms
