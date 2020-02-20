@@ -36,11 +36,12 @@ sudo apt-get install -y --no-install-recommends libboost-all-dev
 sudo apt-get install -y wget unzip
 
 # pip and other python dependencies
-sudo apt-get install -y python-pip
-sudo apt-get install -y python-dev
+sudo apt-get install -y python-pip python3-pip
+sudo apt-get install -y python-dev python3-dev
 sudo apt-get install -y gfortran
 sudo apt-get install -y libz-dev libjpeg-dev libfreetype6-dev
-sudo apt-get install -y python-opencv python-tk
+sudo apt-get install -y libxml2-dev libxslt1-dev
+sudo apt-get install -y python-opencv python3-tk
 
 # setup folders and download git repo
 cd $VGG_FACE_INSTALL_FOLDER
@@ -53,46 +54,45 @@ sed -i 's/resnet50_256/senet50_256/g' $VGG_FACE_SRC_FOLDER/service/settings.py
 # create virtual environment and install python dependencies
 cd $VGG_FACE_SRC_FOLDER
 sudo pip install virtualenv
-virtualenv .
+pip install --upgrade pip
+pip install zipp
+virtualenv -p python3 .
 source ./bin/activate
+pip install torch==1.1.0
+pip install Pillow==6.1.0
+pip install PyWavelets==1.1.1
+pip install torchvision==0.3.0
+pip install scipy==1.2.0
+pip install opencv-python==4.2.0.32
+pip install scikit-image==0.14.2
 pip install simplejson==3.8.2
-pip install Pillow==2.3.0
-pip install numpy==1.13.3
-pip install Cython==0.27.3
-pip install scipy==0.18.1
 pip install matplotlib==2.1.0
-pip install scikit-image==0.13.1
-pip install protobuf==3.0.0
-pip install easydict==1.7
-pip install pyyaml==3.12
-pip install dill==0.2.8.2
+pip install protobuf==3.11
 
-# install face-py-faster-rcnn
-wget https://github.com/playerkk/face-py-faster-rcnn/archive/9d8c143e0ff214a1dcc6ec5650fb5045f3002c2c.zip -P /tmp
-unzip /tmp/9d8c143e0ff214a1dcc6ec5650fb5045f3002c2c.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
-mv $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn-* $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn
-wget https://github.com/rbgirshick/caffe-fast-rcnn/archive/0dcd397b29507b8314e252e850518c5695efbb83.zip -P /tmp
-unzip /tmp/0dcd397b29507b8314e252e850518c5695efbb83.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn
-rm -r $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn
-mv $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn-* $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn
-cd $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/lib
-make
-mkdir $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/data/faster_rcnn_models
-cd $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/data/faster_rcnn_models
-wget http://supermoe.cs.umass.edu/%7Ehzjiang/data/vgg16_faster_rcnn_iter_80000.caffemodel
+# download caffe
+wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp
+unzip /tmp/1.0.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
+mv $VGG_FACE_DEPENDENCIES_FOLDER/caffe* $VGG_FACE_DEPENDENCIES_FOLDER/caffe
 
-# download SENet modifications to caffe (Sep 2017) and apply them to caffe-fast-rcnn
+# download SENet modifications to caffe (Sep 2017) and apply them
 wget https://github.com/lishen-shirley/SENet/archive/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -P /tmp
 unzip /tmp/c8f7b4e311fc9b5680047e14648fde86fb23cb17.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
 mv $VGG_FACE_DEPENDENCIES_FOLDER/SENet* $VGG_FACE_DEPENDENCIES_FOLDER/SENet
-CAFFE_FASTER_RCNN_FOLDER="$VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn"
-cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/include/caffe/layers/* $CAFFE_FASTER_RCNN_FOLDER/include/caffe/layers/
-cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/src/caffe/layers/* $CAFFE_FASTER_RCNN_FOLDER/src/caffe/layers/
+cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/include/caffe/layers/* $VGG_FACE_DEPENDENCIES_FOLDER/caffe/include/caffe/layers/
+cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/src/caffe/layers/* $VGG_FACE_DEPENDENCIES_FOLDER/caffe/src/caffe/layers/
+
+# download Pytorch_Retinaface (Dec 2019)
+wget https://github.com/biubug6/Pytorch_Retinaface/archive/96b72093758eeaad985125237a2d9d34d28cf768.zip -P /tmp
+unzip /tmp/96b72093758eeaad985125237a2d9d34d28cf768.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
+mv $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface* $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface
+mkdir $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface/weights
 
 # download models
 cd $VGG_FACE_SRC_FOLDER/models
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt
+cd $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface/weights
+wget http://www.robots.ox.ac.uk/~vgg/software/vff/downloads/models/Pytorch_Retinaface/Resnet50_Final.pth
 
 # download static ffmpeg
 wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O /tmp/ffmpeg-release-amd64-static.tar.xz
@@ -104,11 +104,14 @@ sed -i "s|ffmpeg|${VGG_FACE_DEPENDENCIES_FOLDER}/ffmpeg/ffmpeg|g" $VGG_FACE_SRC_
 rm -rf /tmp/*.zip
 rm -rf /tmp/*.tar*
 
-# compile caffe-fast-rcnn
-cd $VGG_FACE_DEPENDENCIES_FOLDER/face-py-faster-rcnn/caffe-fast-rcnn
+# compile caffe
+cd $VGG_FACE_DEPENDENCIES_FOLDER/caffe
 cp Makefile.config.example Makefile.config
 sed -i 's/# WITH_PYTHON_LAYER/WITH_PYTHON_LAYER/g' Makefile.config
-sed -i 's/\/usr\/include\/python2.7/\/usr\/include\/python2.7 \/usr\/local\/lib\/python2.7\/dist-packages\/numpy\/core\/include/g' Makefile.config
+sed -i 's|PYTHON_INCLUDE := /usr/include/python2.7|#PYTHON_INCLUDE := /usr/include/python2.7|g' Makefile.config
+sed -i 's|/usr/lib/python2.7/|#/usr/lib/python2.7/|g' Makefile.config
+sed -i 's|# PYTHON_LIBRARIES := boost_python3|PYTHON_LIBRARIES := boost_python-py35|g' Makefile.config
+sed -i 's|# PYTHON_INCLUDE := /usr/include/python3.5m|PYTHON_INCLUDE := /usr/include/python3.5m '$VGG_FACE_SRC_FOLDER'/lib/python3.5/site-packages/numpy/core/include/ #|g' Makefile.config
 sed -i 's/INCLUDE_DIRS :=/INCLUDE_DIRS := \/usr\/include\/hdf5\/serial\/ /g' Makefile.config
 sed -i 's/LIBRARY_DIRS :=/LIBRARY_DIRS := \/usr\/lib\/x86_64-linux-gnu\/hdf5\/serial\/ /g' Makefile.config
 sed -i 's/# Configure build/CXXFLAGS += -std=c++11/g' Makefile
@@ -121,9 +124,6 @@ mkdir build
 cd build
 cmake -DBoost_INCLUDE_DIR=/usr/include/ ../
 make
-
-# make cv2 available in the virtualenv
-cp /usr/lib/python2.7/dist-packages/cv2*.so $VGG_FACE_SRC_FOLDER/lib/python2.7/cv2.so
 
 # some minor adjustments
 sed -i 's/source ..\//source /g' $VGG_FACE_SRC_FOLDER/service/start_backend_service.sh

@@ -2,6 +2,7 @@
 
 # - This script is to be run in a clean Ubuntu 16 LTS machine, by a sudoer user.
 # - VGG_FACE_SRC_FOLDER should not exist
+# - All python dependencies are installed in a python virtual environment to avoid conflicts with pre-installed python packages
 # - Caffe is compiled for CPU use only.
 
 VGG_FACE_INSTALL_FOLDER="$HOME"
@@ -28,12 +29,12 @@ sudo apt-get install -y --no-install-recommends libboost-all-dev
 sudo apt-get install -y wget unzip
 
 # pip and other python dependencies
-sudo apt-get install -y python-pip
-sudo apt-get install -y python-dev
+sudo apt-get install -y python-pip python3-pip
+sudo apt-get install -y python-dev python3-dev
 sudo apt-get install -y gfortran
 sudo apt-get install -y libz-dev libjpeg-dev libfreetype6-dev
 sudo apt-get install -y libxml2-dev libxslt1-dev
-sudo apt-get install -y python-opencv python-tk
+sudo apt-get install -y python-opencv python3-tk
 
 # setup folders and download git repo
 cd $VGG_FACE_INSTALL_FOLDER
@@ -45,20 +46,20 @@ sed -i 's/resnet50_256/senet50_256/g' $VGG_FACE_SRC_FOLDER/service/settings.py
 # create virtual environment and install python dependencies
 cd $VGG_FACE_SRC_FOLDER
 sudo pip install virtualenv
-virtualenv .
-source ./bin/activate
 pip install --upgrade pip
-pip install setuptools==40.4.3
-pip install simplejson==3.8.2
+pip install zipp
+virtualenv -p python3 .
+source ./bin/activate
+pip install torch==1.1.0
 pip install Pillow==6.1.0
-pip install numpy==1.13.3
-pip install lxml==4.1.1
-pip install scipy==0.18.1
+pip install PyWavelets==1.1.1
+pip install torchvision==0.3.0
+pip install scipy==1.2.0
+pip install opencv-python==4.2.0.32
+pip install scikit-image==0.14.2
+pip install simplejson==3.8.2
 pip install matplotlib==2.1.0
-pip install scikit-image==0.13.1
-pip install scikit-learn==0.19.1
-pip install dill==0.2.8.2
-pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
+pip install protobuf==3.11
 
 # download caffe
 wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp
@@ -72,15 +73,18 @@ mv $VGG_FACE_DEPENDENCIES_FOLDER/SENet* $VGG_FACE_DEPENDENCIES_FOLDER/SENet
 cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/include/caffe/layers/* $VGG_FACE_DEPENDENCIES_FOLDER/caffe/include/caffe/layers/
 cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/src/caffe/layers/* $VGG_FACE_DEPENDENCIES_FOLDER/caffe/src/caffe/layers/
 
-# download davidsandberg's facenet (Dec 2017)
-wget https://github.com/davidsandberg/facenet/archive/28d3bf2fa7254037229035cac398632a5ef6fc24.zip -P /tmp
-unzip /tmp/28d3bf2fa7254037229035cac398632a5ef6fc24.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
-mv $VGG_FACE_DEPENDENCIES_FOLDER/facenet* $VGG_FACE_DEPENDENCIES_FOLDER/facenet
+# download Pytorch_Retinaface (Dec 2019)
+wget https://github.com/biubug6/Pytorch_Retinaface/archive/96b72093758eeaad985125237a2d9d34d28cf768.zip -P /tmp
+unzip /tmp/96b72093758eeaad985125237a2d9d34d28cf768.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
+mv $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface* $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface
+mkdir $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface/weights
 
 # download models
 cd $VGG_FACE_SRC_FOLDER/models
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt
+cd $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface/weights
+wget http://www.robots.ox.ac.uk/~vgg/software/vff/downloads/models/Pytorch_Retinaface/Resnet50_Final.pth
 
 # download static ffmpeg
 wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O /tmp/ffmpeg-release-amd64-static.tar.xz
@@ -95,8 +99,11 @@ rm -rf /tmp/*.tar*
 # compile caffe
 cd $VGG_FACE_DEPENDENCIES_FOLDER/caffe
 cp Makefile.config.example Makefile.config
-sed -i 's/# CPU_ONLY/CPU_ONLY/g' Makefile.config
-sed -i 's/\/usr\/include\/python2.7/\/usr\/include\/python2.7 \/usr\/local\/lib\/python2.7\/dist-packages\/numpy\/core\/include/g' Makefile.config
+sed -i 's|# CPU_ONLY|CPU_ONLY|g' Makefile.config
+sed -i 's|PYTHON_INCLUDE := /usr/include/python2.7|#PYTHON_INCLUDE := /usr/include/python2.7|g' Makefile.config
+sed -i 's|/usr/lib/python2.7/|#/usr/lib/python2.7/|g' Makefile.config
+sed -i 's|# PYTHON_LIBRARIES := boost_python3|PYTHON_LIBRARIES := boost_python-py35|g' Makefile.config
+sed -i 's|# PYTHON_INCLUDE := /usr/include/python3.5m|PYTHON_INCLUDE := /usr/include/python3.5m '$VGG_FACE_SRC_FOLDER'/lib/python3.5/site-packages/numpy/core/include/ #|g' Makefile.config
 sed -i 's/INCLUDE_DIRS :=/INCLUDE_DIRS := \/usr\/include\/hdf5\/serial\/ /g' Makefile.config
 sed -i 's/LIBRARY_DIRS :=/LIBRARY_DIRS := \/usr\/lib\/x86_64-linux-gnu\/hdf5\/serial\/ /g' Makefile.config
 sed -i 's/# Configure build/CXXFLAGS += -std=c++11/g' Makefile
@@ -109,9 +116,6 @@ mkdir build
 cd build
 cmake -DBoost_INCLUDE_DIR=/usr/include/ ../
 make
-
-# make cv2 available in the virtualenv
-cp /usr/lib/python2.7/dist-packages/cv2*.so $VGG_FACE_SRC_FOLDER/lib/python2.7/cv2.so
 
 # some minor adjustments
 sed -i 's/source ..\//source /g' $VGG_FACE_SRC_FOLDER/service/start_backend_service.sh
