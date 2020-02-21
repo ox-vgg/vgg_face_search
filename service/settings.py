@@ -18,11 +18,11 @@ DEPENDENCIES_PATH = os.path.join(FILE_DIR, '..', 'dependencies')
 
 DATASET_FEATS_FILE = os.path.join(FILE_DIR, '..', 'features', 'database.pkl')
 
-FEATURES_CAFFE_MODEL = os.path.join(FILE_DIR, '..', 'models', 'resnet50_256.caffemodel')
+FEATURES_MODEL_WEIGHTS = os.path.join(FILE_DIR, '..', 'models', 'senet50_256.pth')
 
-FEATURES_CAFFE_PROTOTXT = os.path.join(FILE_DIR, '..', 'models', 'resnet50_256.prototxt')
+FEATURES_MODEL_DEF = os.path.join(FILE_DIR, '..', 'models', 'senet50_256.py')
 
-FEATURES_CAFFE_LAYER = 'feat_extract'
+FEATURES_MODEL_LAYER = 'feat_extract'
 
 FEATURES_VECTOR_SIZE = 256
 
