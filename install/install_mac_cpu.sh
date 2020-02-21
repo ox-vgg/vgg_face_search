@@ -2,7 +2,8 @@
 
 # - This script has been tested in a clean macOS High Sierra 10.13.3
 # - It assumes Homebrew is available in the system (https://brew.sh/).
-# - If used to install pip and protobuf, it will require a sudoer user.
+# - If used to install pip, it will require a sudoer user.
+# - All python dependencies are installed in a python virtual environment to avoid conflicts with pre-installed python packages
 # - VGG_FACE_SRC_FOLDER should not exist
 # - Caffe is compiled for CPU use only.
 
@@ -27,10 +28,13 @@ brew install -vd snappy leveldb gflags glog szip lmdb
 brew install -vd hdf5
 brew install -vd opencv@2
 brew install -vd tesseract
-brew install -vd boost@1.59 boost-python
+brew install -vd python3
+brew install -vd boost boost-python3
 brew install -vd openblas
 brew link --force opencv@2
-brew link --overwrite --force boost@1.59
+
+# torch dependencies
+brew install libomp
 
 # Download vgg_face_search git repo and create virtual environment
 wget https://gitlab.com/vgg/vgg_face_search/-/archive/master/vgg_face_search-master.zip -O /tmp/vgg_face_search.zip
@@ -38,27 +42,29 @@ unzip /tmp/vgg_face_search.zip -d $VGG_FACE_INSTALL_FOLDER/
 mv $VGG_FACE_INSTALL_FOLDER/vgg_face_search*  $VGG_FACE_SRC_FOLDER
 sed -i '.sed' 's/resnet50_256/senet50_256/g' $VGG_FACE_SRC_FOLDER/service/settings.py
 
+# python dependencies
+cd $VGG_FACE_SRC_FOLDER
+pip3 install virtualenv
+virtualenv -p python3 .
+source ./bin/activate
+pip install torch==1.1.0
+pip install Pillow==6.1.0
+pip install PyWavelets==1.1.1
+pip install torchvision==0.3.0
+pip install scipy==1.2.0
+pip install opencv-python==4.2.0.32
+pip install scikit-image==0.14.2
+pip install simplejson==3.8.2
+pip install matplotlib==2.1.0
+
 # download, compile and install protobuf-3.1.0, newer versions of protobuf won't work
 wget https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protobuf-cpp-3.1.0.zip -O /tmp/protobuf-cpp-3.1.0.zip
 unzip /tmp/protobuf-cpp-3.1.0.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
 cd $VGG_FACE_DEPENDENCIES_FOLDER/protobuf-3.1.0/
 ./configure CC=clang CXX=clang++ CXXFLAGS='-std=c++11 -stdlib=libc++ -O3 -g' LDFLAGS='-stdlib=libc++' LIBS="-lc++ -lc++abi"
 make -j 4
-sudo make install
-
-# python dependencies
-cd $VGG_FACE_SRC_FOLDER
-pip install simplejson==3.8.2
-pip install Pillow==6.1.0
+make install
 pip install protobuf==3.1.0
-pip install numpy==1.16.2
-pip install lxml==4.1.1
-pip install scipy==0.18.1
-pip install matplotlib==2.1.0
-pip install scikit-image==0.13.1
-pip install scikit-learn==0.19.1
-pip install dill==0.2.8.2
-pip install https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.4.0-py2-none-any.whl
 
 # download caffe 1.0
 wget https://github.com/BVLC/caffe/archive/1.0.zip -P /tmp
@@ -72,15 +78,18 @@ mv $VGG_FACE_DEPENDENCIES_FOLDER/SENet* $VGG_FACE_DEPENDENCIES_FOLDER/SENet
 cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/include/caffe/layers/* $VGG_FACE_DEPENDENCIES_FOLDER/caffe/include/caffe/layers/
 cp -v $VGG_FACE_DEPENDENCIES_FOLDER/SENet/src/caffe/layers/* $VGG_FACE_DEPENDENCIES_FOLDER/caffe/src/caffe/layers/
 
-# download davidsandberg's facenet (Dec 2017)
-wget https://github.com/davidsandberg/facenet/archive/28d3bf2fa7254037229035cac398632a5ef6fc24.zip -P /tmp
-unzip /tmp/28d3bf2fa7254037229035cac398632a5ef6fc24.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
-mv $VGG_FACE_DEPENDENCIES_FOLDER/facenet* $VGG_FACE_DEPENDENCIES_FOLDER/facenet
+# download Pytorch_Retinaface (Dec 2019)
+wget https://github.com/biubug6/Pytorch_Retinaface/archive/96b72093758eeaad985125237a2d9d34d28cf768.zip -P /tmp
+unzip /tmp/96b72093758eeaad985125237a2d9d34d28cf768.zip -d $VGG_FACE_DEPENDENCIES_FOLDER/
+mv $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface* $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface
+mkdir $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface/weights
 
 # download models
 cd $VGG_FACE_SRC_FOLDER/models
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.caffemodel
 wget http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/256/senet50_256.prototxt
+cd $VGG_FACE_DEPENDENCIES_FOLDER/Pytorch_Retinaface/weights
+wget http://www.robots.ox.ac.uk/~vgg/software/vff/downloads/models/Pytorch_Retinaface/Resnet50_Final.pth
 
 # download static ffmpeg
 wget https://ffmpeg.zeranoe.com/builds/macos64/static/ffmpeg-4.1.1-macos64-static.zip -P /tmp
@@ -91,21 +100,28 @@ sed -i '.sed' "s|ffmpeg|${VGG_FACE_DEPENDENCIES_FOLDER}/ffmpeg/bin/ffmpeg|g" $VG
 # remove all zips
 rm -rf /tmp/*.zip
 
+# obtain the location of python3 dev files
+PYTHON3_DIR=$(brew --prefix python3)
+
 # compile caffe
 cd $VGG_FACE_DEPENDENCIES_FOLDER/caffe
 cp Makefile.config.example Makefile.config
-sed -i '.sed' 's/# CPU_ONLY/CPU_ONLY/g' Makefile.config
-sed -i '.sed' 's/BLAS := atlas/BLAS := open/g' Makefile.config
+sed -i '.sed' 's|# CPU_ONLY|CPU_ONLY|g' Makefile.config
+sed -i '.sed' 's|PYTHON_INCLUDE := /usr/include/python2.7|#PYTHON_INCLUDE := /usr/include/python2.7|g' Makefile.config
+sed -i '.sed' 's|/usr/lib/python2.7/|#/usr/lib/python2.7/|g' Makefile.config
+sed -i '.sed' 's|BLAS := atlas|BLAS := open|g' Makefile.config
 sed -i '.sed' 's/# BLAS_INCLUDE := $(/BLAS_INCLUDE := $(/g' Makefile.config
 sed -i '.sed' 's/# BLAS_LIB := $(/BLAS_LIB := $(/g' Makefile.config
-sed -i '.sed' 's/# PYTHON_INCLUDE +=/PYTHON_INCLUDE +=/g' Makefile.config
-sed -i '.sed' 's/# Configure build/CXXFLAGS += -std=c++11/g' Makefile
-sed -i '.sed' 's/boost_python/boost_python27/g' Makefile
+sed -i '.sed' 's|# PYTHON_INCLUDE := /usr/include/python3.5m|PYTHON_INCLUDE := '$PYTHON3_DIR'/Frameworks/Python.framework/Versions/3.7/include/python3.7m '$VGG_FACE_SRC_FOLDER'/lib/python3.7/site-packages/numpy/core/include/ #|g' Makefile.config
+sed -i '.sed' 's|# PYTHON_LIBRARIES := boost_python3 python3.5m|PYTHON_LIBRARIES := boost_python37 python3.7m|g' Makefile.config
+sed -i '.sed' 's|# WITH_PYTHON_LAYER|WITH_PYTHON_LAYER|g' Makefile.config
+sed -i '.sed' 's|PYTHON_LIB :=|PYTHON_LIB :='$PYTHON3_DIR'/Frameworks/Python.framework/Versions/3.7/lib|g' Makefile.config
+sed -i '.sed' 's|# Configure build|CXXFLAGS += -std=c++11|g' Makefile
 make all
 make pycaffe
 
 # compile shot detector
-BREW_BOOST_ROOT=$(brew info boost@1.59 | grep Cellar/boost | awk '{print $1}' )
+BREW_BOOST_ROOT=$(brew info boost | grep Cellar/boost | awk '{print $1}' )
 cd $VGG_FACE_SRC_FOLDER/pipeline
 mkdir build
 cd build
@@ -115,7 +131,3 @@ make
 # some minor adjustments
 sed -i '.sed' 's/source ..\//source /g' $VGG_FACE_SRC_FOLDER/service/start_backend_service.sh
 sed -i '.sed' 's/source ..\//source /g' $VGG_FACE_SRC_FOLDER/pipeline/start_pipeline.sh
-
-# Make cv2 available locally
-CV2_LOCATION=$(brew info opencv@2 | grep /usr/local/Cellar | cut -d' ' -f1)
-cp $CV2_LOCATION/lib/python2.7/site-packages/cv2.so $HOME/Library/Python/2.7/lib/python/site-packages
