@@ -10,21 +10,17 @@ Derived for the original version by Omkar Parkhi, VGG - University of Oxford, 20
 Installation Instructions
 -------------------------
 
-The service can run with or without GPU support. However, a different face-detector is used on each case, so different dependencies are needed.
+The service can run with or without GPU support. Currently, this [Pytorch version of RetinaFace](https://github.com/biubug6/Pytorch_Retinaface) is used for face detection on all platforms, for which Python 3 and Pytorch are needed.
 
-Without GPU support, a CPU face-detector extracted from [facenet](https://github.com/davidsandberg/facenet) is used, along with [Caffe](https://github.com/BVLC/caffe) and pycaffe.
-
-With GPU support, the GPU [Faster R-CNN python implementation](https://github.com/rbgirshick/py-faster-rcnn ) is used. This software includes its own version of Caffe, so there is no need to download another version.
-
-In the `install` folder at the root of the repository you will find installation scripts for Ubuntu and macOS, for the GPU-only and the CPU-only versions of the service. For having a service that supports both the GPU and the CPU just use the GPU-only installer and then download `facenet` into the `dependencies` folder. See the CPU-only installation script for the way to do it.
+In the `install` folder at the root of the repository you will find installation scripts for Ubuntu and macOS. Using the GPU is supported as long as the Pytorch installation can have access to the GPU. See the next section for instructions on how to enable the GPU support.
 
 Usage
 -----
 
 Before running the service for the first time, please check the `settings.py` file:
 
- 1. Check that the `CUDA_ENABLED` flag is set to `False` if you used the CPU-only installation script or set to `True` if you used the GPU-only installation.
- 2. Make sure that `DEPENDENCIES_PATH` points to the location of the place where the dependency libraries (e.g. Caffe) are installed.
+ 1. Check that the `CUDA_ENABLED` flag is set to `False` if you want to use the CPU or set it to `True` if you want to use the GPU.
+ 2. Make sure that `DEPENDENCIES_PATH` points to the location of the place where the dependency libraries (e.g. Pytorch_Retinaface) are installed.
  3. Make sure that `DATASET_FEATS_FILE` points to the location of your dataset features file. If you do not have one, you won't be able to run the service until you run the feature computation `pipeline`. See the README in the `pipeline` directory at the root of the repository.
  4. Adjust `MAX_RESULTS_RETURN` as you wish.
  5. Only change the rest of the settings if you really know what you are doing.

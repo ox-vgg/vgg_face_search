@@ -10,11 +10,11 @@ Usage
 
 The data-ingestion pipeline uses the same settings as the VGG Face Search Service. Therefore, please go to the `service` directory at the root of the repository and check the `settings.py` file:
 
- 1. Check that the `CUDA_ENABLED` flag is set to `False` if you used the CPU-only installation script or set to `True` if you used the GPU-only installation.
- 2. Make sure that `DEPENDENCIES_PATH` points to the location of the place where the dependency libraries (e.g. Caffe) are installed.
+ 1. Check that the `CUDA_ENABLED` flag is set to `False` if you want to use the CPU or set it to `True` if you want to use the GPU.
+ 2. Make sure that `DEPENDENCIES_PATH` points to the location of the place where the dependency libraries (e.g. Pytorch_Retinaface) are installed.
  3. Make sure that `DATASET_FEATS_FILE` points to the location of your dataset features file. **IMPORTANT: If you do not have a features file it will be created for you at the end of the data-ingestion pipeline, but if you do have one any new feature data will be ADDED to the previous features file !**.
  4. Only change the rest of the settings if you really know what you are doing.
- 5. If you are going to use GPU face-detector, please make sure once again that CUDA is reachable and that you can compile CUDA code.
+ 5. If you are going to use a GPU for the face-detector, please make sure that Pytorch can access your GPU device.
 
 After you have checked the settings, you can already run the data-ingestion pipeline. However, in some cases it might be needed to specify the location of additional libraries in your system (e.g. when CUDA is not installed in its standard location). If this is your case, for Linux and macOS, edit the `start_pipeline.sh` script and add any additional library paths to the $LD_LIBRARY_PATH variable. If you are doing the data-ingestion using `start_pipeline.bat` you will need to add those paths to your system's environment variables.
 
