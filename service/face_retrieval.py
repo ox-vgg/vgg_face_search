@@ -265,7 +265,7 @@ class FaceRetrieval(object):
             if 'roi' in req_params['extra_params']:
                 # if request specifies a ROI ...
                 roi = req_params['extra_params']['roi']
-                roi = numpy.array([int(x) for x in roi]).reshape(len(roi)/2, 2)
+                roi = numpy.array([int(x) for x in roi]).reshape(len(roi)//2, 2)
                 xl, yl = roi.min(axis=0)
                 xu, yu = roi.max(axis=0)
                 roi = [xl, yl, xu, yu]
