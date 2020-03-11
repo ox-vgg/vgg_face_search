@@ -46,6 +46,7 @@ RUN pip install --upgrade pip \
     && rm  /tmp/requirements.txt \
     && sed -i 's/source ..\//source /g' /webapps/vgg_face_search/service/start_backend_service.sh \
     && sed -i 's/source ..\//source /g' /webapps/vgg_face_search/pipeline/start_pipeline.sh \
+    && sed -i "s|ffmpeg|/webapps/vgg_face_search/dependencies/ffmpeg/ffmpeg|g" /webapps/vgg_face_search/pipeline/start_pipeline.sh \
     && sed -i 's/resnet50_256/senet50_256/g' /webapps/vgg_face_search/service/settings.py \
     && sed -i 's/localhost/0.0.0.0/g' /webapps/vgg_face_search/service/settings.py \
     && rm -rf /tmp/*.zip \
