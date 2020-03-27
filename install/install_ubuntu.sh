@@ -36,7 +36,8 @@ sed -i 's/resnet50_256/senet50_256/g' $VGG_FACE_SRC_FOLDER/service/settings.py
 
 # create virtual environment and install python dependencies
 cd $VGG_FACE_SRC_FOLDER
-sudo pip install virtualenv
+sudo pip install configparser==4.0.2
+sudo pip install virtualenv==20.0.7
 pip install --upgrade pip
 pip install zipp
 virtualenv -p python3 .
