@@ -55,14 +55,14 @@ if __name__ == '__main__':
 
     # check input frames path
     if not os.path.exists(args.input_frames_dir) or not os.path.isdir(args.input_frames_dir):
-        print 'ERROR: %s does not exist or is not a valid directory. Aborting !' % args.input_frames_dir
+        print ('ERROR: %s does not exist or is not a valid directory. Aborting !' % args.input_frames_dir)
         sys.exit(1)
 
     # acquire list of images
     video_frames_list = os.listdir(args.input_frames_dir)
     video_frames_list.sort()
     if len(video_frames_list)==0:
-        print 'ERROR: There are no frames in %s . Aborting !.' % args.input_frames_dir
+        print ('ERROR: There are no frames in %s . Aborting !.' % args.input_frames_dir)
         sys.exit(1)
 
     # init useful vars
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         # read image
         img = imutils.acquire_image(full_path)
         if numpy.all(img==None):
-            print 'ERROR: Could not read %s. Aborting !' % full_path
+            print ('ERROR: Could not read %s. Aborting !' % full_path)
             sys.exit(1)
 
         if im_width<0 and im_height<0:
