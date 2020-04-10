@@ -35,7 +35,7 @@ RUN pip install --upgrade pip \
     && mkdir /webapps/ \
     && chmod 777 /webapps/ \
     && cd /webapps/ \
-    && wget -t 0 https://gitlab.com/vgg/vgg_face_search/-/archive/develop/vgg_face_search-develop.zip -O /tmp/vgg_face_search.zip \
+    && wget -t 0 https://gitlab.com/vgg/vgg_face_search/-/archive/master/vgg_face_search-master.zip -O /tmp/vgg_face_search.zip \
     && unzip /tmp/vgg_face_search.zip -d /webapps/ \
     && mv /webapps/vgg_face_search* /webapps/vgg_face_search \
     && cd /webapps/vgg_face_search \
