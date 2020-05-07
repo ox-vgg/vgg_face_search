@@ -1,58 +1,58 @@
 __author__      = 'Ernesto Coto'
-__copyright__   = 'April 2018'
+__copyright__   = 'February 2020'
 
 import numpy
 import os
 import sys
 import multiprocessing
-import skimage
+import skimage.transform
 import settings
+import torch
+import torch.backends.cudnn as cudnn
+import PIL.Image
 
-# add pycaffe to the sys path
-sys.path.append(os.path.join(settings.DEPENDENCIES_PATH, 'caffe', 'python'))
-# suppress Caffe verbose prints
-os.environ['GLOG_minloglevel'] = '2'
-# finally import Caffe
-import caffe
+cudnn.benchmark = True
+torch.set_grad_enabled(False)
+
+# add model definition folder to the sys path
+sys.path.append(os.path.dirname(settings.FEATURES_MODEL_DEF))
+# then import the model
+import senet50_256 as model
 
 class FaceFeatureExtractor(object):
     """ Class to support the face-feature extraction """
 
-    def __init__(self, caffe_prototxt=settings.FEATURES_CAFFE_PROTOTXT,
-                       caffe_model=settings.FEATURES_CAFFE_MODEL,
-                       feature_layer=settings.FEATURES_CAFFE_LAYER,
+    def __init__(self, model_weights=settings.FEATURES_MODEL_WEIGHTS,
+                       model_def=settings.FEATURES_MODEL_DEF,
+                       feature_layer=settings.FEATURES_MODEL_LAYER,
                        feature_vector_size=settings.FEATURES_VECTOR_SIZE,
                        enable_cuda=settings.CUDA_ENABLED):
         """
-            Initializes the face-feature extraction CNN model in Caffe
+            Initializes the face-feature extraction CNN model
             Arguments:
-                caffe_prototxt: Full path to the Caffe prototxt file corresponding to the model
-                caffe_model: Full path to Caffe CNN model
+                model_weights: Full path to the file containing the weights of the model
+                model_def: Full path to the model
                 feature_layer: name of the layer from where to extract the features
                 feature_vector_size: the length of the feature vector output by the CNN
                 enable_cuda: boolean indicating whether CUDA must be used for the extraction of the features
         """
         self.is_cuda_enable = enable_cuda
-        self.caffe_prototxt = caffe_prototxt
-        self.caffe_model = caffe_model
+        self.model_weights = model_weights
+        self.model_def = model_def
         self.feature_layer = feature_layer
         self.feature_vector_size = feature_vector_size
         self.net_lock = multiprocessing.Lock()
 
-        # Load caffe model here. Take the help from
-        # http://caffe.berkeleyvision.org/tutorial/interfaces.html
-
-        self.net = caffe.Net(self.caffe_prototxt, self.caffe_model, caffe.TEST)
-        self.net.blobs['data'].reshape(1, 3, 224, 224)
-        self.transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
-        self.transformer.set_transpose('data', (2, 0, 1))
-
-        # Change this code to set mean array from the mean RGB values. Note that mean
-        # subtraction is done after the channel swap.
-
-        self.transformer.set_mean('data', numpy.array([91.4953, 103.8827, 131.0912]) ) # mean pixel
-        self.transformer.set_raw_scale('data', 255)  # the reference model operates on images in [0,255] range instead of [0,1]
-        self.transformer.set_channel_swap('data', (2, 1, 0))  # the reference model has channels in BGR order instead of RGB
+        # Load model here
+        self.network = model.Senet50_256()
+        self.device = torch.device('cpu' if not self.is_cuda_enable else 'cuda')
+        if not self.is_cuda_enable:
+            pretrained_dict = torch.load(self.model_weights, map_location=lambda storage, loc: storage)
+        else:
+            pretrained_dict = torch.load(self.model_weights, map_location=lambda storage, loc: storage.cuda(self.device))
+        self.network.load_state_dict(pretrained_dict)
+        self.network.eval()
+        self.network = self.network.to(self.device)
 
 
     def feature_compute(self, image):
@@ -70,26 +70,29 @@ class FaceFeatureExtractor(object):
 
             try:
 
-                # Setting the Caffe mode has to be done PER THREAD, so this needs
-                # to be executed every time this method is called
-                if self.is_cuda_enable:
-                    caffe.set_mode_gpu()
-                    #caffe.set_device(0) # Change the default GPU here, if needed
-                else:
-                    caffe.set_mode_cpu()
+                # the input to the network is 224x224, so we need to resize the image.
+                # Unfortunately, the resizing has to be done with Pillow to follow
+                # a similar procedure to
+                # https://github.com/ox-vgg/vgg_face2/blob/master/standard_evaluation/pytorch_feature_extractor.py
+                # or the results are not the same because the resizing results with
+                # skimage are different
 
-                # the input to the network is 224x224. If not done here, transformer.preprocess() will do it anyway
-                img_scaled = skimage.transform.resize(image, (224, 224), mode='constant')
+                pil_img = PIL.Image.fromarray(image)
+                pil_img = pil_img.resize(size=(244, 244), resample=PIL.Image.BILINEAR)
+
+                # now we can convert back to numpy to continue
+                img_prepared = numpy.array(pil_img)
+                img_prepared = img_prepared - self.network.meta['mean']
+                im_array = numpy.array([img_prepared])
+                img_torch = torch.Tensor(im_array.transpose(0, 3, 1, 2))
+                img_torch = img_torch.to(self.device)
 
                 # lock acquire
                 self.net_lock.acquire()
 
-                # use transformer to prepare input data
-                self.net.blobs['data'].data[...] = self.transformer.preprocess('data', img_scaled)
                 # evaluate input
-                out = self.net.forward()
-                # extract features from configured model layer
-                feat = self.net.blobs[self.feature_layer].data[0];
+                feat = self.network(img_torch)[1].detach().cpu().numpy()[: , :, 0, 0]
+
                 # make sure the output is a simple 1D vector
                 feat = numpy.reshape(feat, self.feature_vector_size)
 
@@ -97,8 +100,7 @@ class FaceFeatureExtractor(object):
                 self.net_lock.release()
 
                 # normalize
-                norm = numpy.linalg.norm(feat)
-                feat = feat/max(norm, 0.00001)
+                feat = feat / numpy.sqrt(numpy.sum(feat ** 2, -1, keepdims=True))
 
                 return feat
 

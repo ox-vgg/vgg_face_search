@@ -18,8 +18,8 @@ if "%1"=="video" (
       REM make new temporary folder
       mkdir "%~dp0..\..\tmp\!VIDEONAME!"
       REM extract video fps value
-      ffmpeg -i %2 > "%~dp0..\..\tmp\!VIDEONAME!_ffmpeg.txt" 2>&1
-      powershell.exe -nologo -noprofile -command "cat '%~dp0..\..\tmp\!VIDEONAME!_ffmpeg.txt' | %%{[Regex]::Matches($_,'.. fps')} | %%{$_.Value} | %%{$_ -replace ' fps', '' } | Out-File -encoding ascii '%~dp0..\..\tmp\!VIDEONAME!_fps.txt'"
+      ffmpeg -i %2 > "%~dp0..\..\tmp\!VIDEONAME!_videoinfo.txt" 2>&1
+      powershell.exe -nologo -noprofile -command "cat '%~dp0..\..\tmp\!VIDEONAME!_videoinfo.txt' | %%{[Regex]::Matches($_,'.. fps')} | %%{$_.Value} | %%{$_ -replace ' fps', '' } | Out-File -encoding ascii '%~dp0..\..\tmp\!VIDEONAME!_fps.txt'"
       SET /p FPS=<"%~dp0..\..\tmp\!VIDEONAME!_fps.txt"
       REM extract all video frames and run shot detection
       ffmpeg -i %2 -vsync vfr -q:v 1 -start_number 0 -vf "scale=iw:ih*(1/sar)" -loglevel panic "%~dp0..\..\tmp\!VIDEONAME!\%%05d.jpg"
